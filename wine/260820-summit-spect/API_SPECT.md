@@ -600,3 +600,5 @@ Content-Type: application/json
 `api-taitaxes` `/uat/cloud/apiv2-Winesearch_Excise` → `winefasttrack-uat.excise.go.th/cloud/apiv2-Winesearch_Excise` → `excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-Winesearch_Excise`
 
 snippet ที่ต้องเพิ่มอยู่ที่ `DRAFT.md` §3
+
+รายงาน query ที่ origin / `/wine/WineSearch` ยิงต่ออยู่ที่ `QUERY.md`
