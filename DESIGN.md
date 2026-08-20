@@ -18,6 +18,7 @@
 | พิมพ์      | ออกแบบให้สวยแม้ปิด “Background graphics”                                            |
 | เน้นคำ     | ตัวหนา (`font-weight: 700`) **ห้าม** กรอบ/พื้นแบบ badge รอบ `POST`, ชื่อฟิลด์, รหัส |
 | ลิงก์      | ลิงก์ทั่วไป — สีลิงก์ + ขีดเส้นใต้ ห้ามทำให้เหมือนข้อความธรรมดา                     |
+| อ้างอิงไฟล์ repo อื่น | permalink GitHub ตาม `git remote` (`/blob/<commit>/<path>#L…`) ระบุ branch + commit ที่หัวเอกสาร ห้าม path เครื่อง local |
 | ภาษา       | คำที่เป็น tech scope ใช้ภาษาอังกฤษตามระบบ **ไม่ทับศัพท์** เช่น environment, endpoint, token, revoke, rollback, rotate |
 | คำถาม      | หัวข้อหรือประโยคที่เป็นคำถามลงท้ายด้วย `?`                                          |
 

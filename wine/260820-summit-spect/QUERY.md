@@ -2,13 +2,20 @@
 
 รายงานเพิ่มจาก `API_SPECT` · ฉบับภายใน Thinkbit
 
-ดึงจาก `excise-wine-nodejs-api` (`wse.ts`) และ `excise-wine-go-api` (`GET /wine/WineSearch`)
+ดึงจาก [excise-wine-nodejs-api](https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts) (`wse.ts`) และ [excise-wine-go-api](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/functions/wine/handler.go#L49) (`GET /wine/WineSearch`)
 
 | | |
 |---|---|
 | **Audience** | Thinkbit (dev / ops) |
-| **Source** | `wse.ts` · `excise-wine-go-api` `WineSearchAllYear` / `GetWineSearchAllYear` |
+| **Source** | [`wse.ts`](https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts) · [`WineSearchAllYear`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/services/wineseacher.go#L447) / [`GetWineSearchAllYear`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/repositorys/wineseacher.go#L661) |
 | **Date** | 2026-08-20 |
+
+ลิงก์ไฟล์ข้าม repo เป็น permalink ตาม commit — ถ้า HEAD ถูกแก้ ลิงก์ยังชี้จุดเดิม
+
+| Repo | Branch | Commit |
+|---|---|---|
+| [excise-wine-nodejs-api](https://github.com/THINKBITTH/excise-wine-nodejs-api) | `staging/aws` | [`c3950ca`](https://github.com/THINKBITTH/excise-wine-nodejs-api/commit/c3950ca0d80cce3f35eaf1f76c98caff400fef15) |
+| [excise-wine-go-api](https://github.com/THINKBITTH/excise-wine-go-api) | `staging/aws` | [`d57c5ad`](https://github.com/THINKBITTH/excise-wine-go-api/commit/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb) |
 
 `ReqNo` / `CategoryName` จาก request ของ `apiv2-Winesearch_Excise` **ไม่ถูกใช้ใน query ค้น** ถูกเขียนลง log ฝั่ง nodejs เท่านั้น
 
@@ -40,13 +47,13 @@ flowchart TD
   RT --> M
 ```
 
-`GET /wine/WineSearch` ชี้ไปที่ `excise-wine-go-api` (`api/functions/wine/handler.go`) handler เรียก `WineSearchAllYear` เสมอ ไม่เรียก `WineSearch` แบบรายการเดียวแล้ว
+`GET /wine/WineSearch` ชี้ไปที่ [excise-wine-go-api](https://github.com/THINKBITTH/excise-wine-go-api) ([`handler.go`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/functions/wine/handler.go#L49)) handler เรียก [`WineSearchAllYear`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/services/wineseacher.go#L447) เสมอ ไม่เรียก [`WineSearch`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/services/wineseacher.go#L707) แบบรายการเดียวแล้ว
 
 ---
 
 ## 2. SQL — เทียบชื่อ+ปีใน master
 
-ยิงเมื่อ Algolia ของระบบคืน **มากกว่า 1 hit** (`IndexSearchMoreThanOne`)
+ยิงเมื่อ Algolia ของระบบคืน **มากกว่า 1 hit** ([`IndexSearchMoreThanOne`](https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts#L267))
 
 ตาราง: `{DATABASE_NAME}.dbo.tbWineLiquor` + `{DATABASE_NAME}.dbo.tbWineLiquorPic`  
 `DATABASE_NAME` จาก `googleCloud.DATABASE_NAME`
@@ -79,7 +86,7 @@ WHERE A.DisplayName = N'{winename}'
 
 ## 3. SQL — เก็บ log
 
-ยิงทุกครั้งที่ค้นจบ (พบ / ใกล้เคียง / ไม่พบ / 500 ตอน search) — **ไม่ยิง** เมื่อ `401` หรือ `400`
+ยิงทุกครั้งที่ค้นจบ (พบ / ใกล้เคียง / ไม่พบ / 500 ตอน search) — **ไม่ยิง** เมื่อ `401` หรือ `400` ([`wse.ts` insert `tbExciseSearchLog`](https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts#L830))
 
 ```sql
 INSERT INTO [dbo].[tbExciseSearchLog] (
@@ -112,7 +119,7 @@ INSERT INTO [dbo].[tbExciseSearchLog] (
 
 ---
 
-## 4. `GET /wine/WineSearch` — `excise-wine-go-api`
+## 4. `GET /wine/WineSearch` — [excise-wine-go-api](https://github.com/THINKBITTH/excise-wine-go-api)
 
 Nodejs ยิง
 
@@ -143,23 +150,23 @@ nodejs **ไม่ได้ส่ง** `wineType`
 | Algolia 0 hit แล้วไป Vivino | ชื่อจาก Vivino | request | ว่าง | `0` |
 | high ranking | ชื่อจาก hit | request | ประเทศจาก hit | แอลกอฮอล์จาก hit |
 
-handler (`handler.go`) parse query แล้วเรียก **`WineSearchAllYear`** เท่านั้น
+handler ([`handler.go`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/functions/wine/handler.go#L49)) parse query แล้วเรียก **[`WineSearchAllYear`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/services/wineseacher.go#L447)** เท่านั้น
 
 ถ้า `AVB=0` และ `Location` ว่าง จะบังคับ `Location=""` / `AVB=0` ก่อนเข้า service (กิ่ง Vivino ของ nodejs ตรงนี้)
 
-response เป็น `{ code, data, message, status }` โดย `data` เป็น **array** (`[]WineSeacherRespondWithTax`) — ฝั่ง `wse.ts` จึงเข้ากิ่ง `data.length > 0` (ใกล้เคียง) เมื่อมีแถว
+response เป็น `{ code, data, message, status }` โดย `data` เป็น **array** (`[]WineSeacherRespondWithTax`) — ฝั่ง [`wse.ts`](https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts) จึงเข้ากิ่ง `data.length > 0` (ใกล้เคียง) เมื่อมีแถว
 
 ### 4.1 ลำดับใน go-api
 
 1. `INSERT tbWineSearchLog` แบบ async
-2. `SELECT` จาก `vw_GetWineSearchAgg` (`GetWineSearchAllYear`)
+2. `SELECT` จาก `vw_GetWineSearchAgg` ([`GetWineSearchAllYear`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/repositorys/wineseacher.go#L661))
 3. ใน memory: ตัดแถวปีว่าง / `NV` แล้ว filter `BottleSize` ถ้า request ส่งมา
 4. ถ้ามีแถวและปีตรง `Vintage` → คืนผล (บวกภาษี)
 5. ถ้าไม่มีแถว หรือมีแต่ปีไม่ตรง → `wineSearchRealtime` (Wine-Searcher API)
 
 ### 4.2 SQL หลัก — `vw_GetWineSearchAgg`
 
-`GetWineSearchAllYear` · `DB_NAME` ค่าเริ่ม `ExciseInfo`
+[`GetWineSearchAllYear`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/repositorys/wineseacher.go#L661) · `DB_NAME` ค่าเริ่ม `ExciseInfo`
 
 `BottleSize` **ไม่อยู่ใน WHERE** กรองทีหลังใน Go  
 `AVB` อยู่ใน WHERE เฉพาะเมื่อ `AVB != 0`  
@@ -199,7 +206,7 @@ view นี้เป็นผลรวมราคาต่อปี/ขวด (
 
 ### 4.3 SQL log ฝั่ง go-api
 
-ทุกครั้งที่เข้า `WineSearchAllYear` (ไม่รอผลค้น)
+ทุกครั้งที่เข้า `WineSearchAllYear` (ไม่รอผลค้น) — [`SaveSearchLog`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/repositorys/wineseacher.go#L792)
 
 ```sql
 INSERT INTO [dbo].[tbWineSearchLog] ([WineName], [CreatedDate], [CreatedBy], [UpdatedDate], [UpdatedBy])
@@ -212,7 +219,7 @@ VALUES (?, ?, ?, ?, ?)
 
 ### 4.4 Fallback — ไม่เจอใน view / ปีไม่ตรง
 
-`wineSearchRealtime`:
+[`wineSearchRealtime`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/services/wineseacher.go#L1483):
 
 1. HTTP Wine-Searcher (อย่าใส่ api-key ในเอกสาร)
 
@@ -250,7 +257,7 @@ EXEC dbo.usp_get_live_price_by_exact_wine_name_from_source
 
 ### 4.5 Path เก่าใน repo ที่ handler ไม่เรียกแล้ว
 
-`WineSearch` (รายการเดียว) ยังมีใน `wineseacher.go` แต่ `handler.go` comment ไว้แล้ว ไม่ถูกใช้จาก `/wine/WineSearch` ปัจจุบัน
+[`WineSearch`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/services/wineseacher.go#L707) (รายการเดียว) ยังมีใน [`wineseacher.go`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/services/wineseacher.go) แต่ [`handler.go`](https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/functions/wine/handler.go#L147) comment ไว้แล้ว ไม่ถูกใช้จาก `/wine/WineSearch` ปัจจุบัน
 
 ถ้าถูกเรียก จะใช้ `vw_GetWineSearch` ไม่ใช่ Agg:
 

@@ -262,24 +262,51 @@ pre code {
           <th>ชั้นความลับ</th><td>Thinkbit internal · อย่าส่งให้ผู้เรียก (ใช้ CLIENT_SPECT)</td>
         </tr>
       </table>
+      <p>Source: <a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts">excise-wine-nodejs-api</a> (<code>wse.ts</code>) · ราคาจาก <a href="https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/functions/wine/handler.go#L49">excise-wine-go-api</a> (<code>GET /wine/WineSearch</code>)</p>
+      <p>ลิงก์ไฟล์ข้าม repo เป็น permalink ตาม commit — ถ้า HEAD ถูกแก้ ลิงก์ยังชี้จุดเดิม</p>
+      <table class="compact">
+        <thead>
+          <tr>
+            <th>Repo</th>
+            <th>Branch</th>
+            <th>Commit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://github.com/THINKBITTH/excise-wine-nodejs-api">excise-wine-nodejs-api</a></td>
+            <td><code>staging/aws</code></td>
+            <td class="url"><a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/commit/c3950ca0d80cce3f35eaf1f76c98caff400fef15">c3950ca</a></td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/THINKBITTH/excise-wine-go-api">excise-wine-go-api</a></td>
+            <td><code>staging/aws</code></td>
+            <td class="url"><a href="https://github.com/THINKBITTH/excise-wine-go-api/commit/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb">d57c5ad</a></td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/THINKBITTH/excise-wine-proxy">excise-wine-proxy</a></td>
+            <td><code>main</code></td>
+            <td class="url"><a href="https://github.com/THINKBITTH/excise-wine-proxy/commit/cf51c2d95fcb5176c904265e9ef3ed83a02ef102">cf51c2d</a></td>
+          </tr>
+        </tbody>
+      </table>
     </header>
 
     <nav class="toc">
       <h2>สารบัญ</h2>
       <ol>
-        <li><a href="#s-users">ผู้ใช้งาน</a></li>
-        <li><a href="#s1">Access — แยก UAT / Production</a></li>
-        <li><a href="#s2">Authentication</a></li>
-        <li><a href="#s3">Request</a></li>
-        <li><a href="#s4">Response</a></li>
-        <li><a href="#s5">HTTP Status</a></li>
-        <li><a href="#s6">Examples</a></li>
-        <li><a href="#s7">Client notes</a></li>
-        <li><a href="#s8">Proxy</a></li>
+        <li><a href="#s1">ผู้ใช้งาน</a></li>
+        <li><a href="#s2">Access — แยก UAT / Production</a></li>
+        <li><a href="#s3">Authentication</a></li>
+        <li><a href="#s4">Request</a></li>
+        <li><a href="#s5">Response</a></li>
+        <li><a href="#s6">HTTP Status</a></li>
+        <li><a href="#s7">Examples</a></li>
+        <li><a href="#s8">Downstream query</a></li>
       </ol>
     </nav>
 
-    <section id="s-users">
+    <section id="s1">
       <h2>1. ผู้ใช้งาน</h2>
       <p>API นี้อยู่ในงานของกรมสรรพสามิต ใช้ค้นไวน์และราคาแนะนำ <strong>ภายในโครงข่ายของกรม</strong> ไม่ได้เปิดเป็นบริการสาธารณะ</p>
       <p>ผู้ใช้งานฝั่งเรียก API คือ <strong>ระบบงานที่ได้รับสิทธิ์</strong> ไม่ผูกว่าต้องเป็นหน่วยงานใดหน่วยงานหนึ่ง โดยทั่วไปคือระบบที่กรมอนุญาตให้เชื่อมเข้ามาทางระบบงานภายในกรมสรรพสามิต</p>
@@ -316,9 +343,10 @@ pre code {
         <li>ไม่เรียก <code>apiv2-ExciseToken</code> เอง — Thinkbit ออก token แล้วส่งให้ระบบนั้นเก็บไปใช้</li>
         <li><code>uid</code> ใน token ใช้ระบุระบบผู้เรียกใน search log ควร unique ต่อระบบ เช่น <code>sys-001</code></li>
       </ul>
+      <p>Thinkbit ออก token ตามข้อ 3 แล้วส่งให้ระบบนั้น ผู้เรียกยิงค้นไวน์ที่ระบบงานภายในกรมสรรพสามิตตามข้อ 2</p>
     </section>
 
-    <section id="s1">
+    <section id="s2">
       <h2>2. Access — แยก UAT / Production</h2>
       <p>ผู้เรียกยิงได้เฉพาะ <strong>ระบบงานภายในกรมสรรพสามิต</strong> (<a href="https://api-taitaxes.excise.go.th">api-taitaxes.excise.go.th</a>) — ทีม Thinkbit ดูแลระบบงานภายในกรม / cloud / origin</p>
       <table class="compact">
@@ -335,17 +363,17 @@ pre code {
         <tbody>
           <tr>
             <td>UAT</td>
-            <td class="url"><strong>POST</strong> <a href="https://api-taitaxes.excise.go.th/uat/cloud/apiv2-Winesearch_Excise">https://api-taitaxes.excise.go.th/uat/cloud/apiv2-Winesearch_Excise</a></td>
-            <td><strong>ยังไม่มี — เพิ่มตาม DRAFT</strong></td>
-            <td class="url"><a href="https://winefasttrack-uat.excise.go.th">winefasttrack-uat.excise.go.th</a> (<code>default.conf</code>)</td>
+            <td class="url"><strong>POST</strong> <a href="https://api-taitaxes.excise.go.th/uat/ft/apiv2-Winesearch_Excise">https://api-taitaxes.excise.go.th/uat/ft/apiv2-Winesearch_Excise</a></td>
+            <td>มี <a href="https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf#L146-L155"><code>/uat/ft/</code></a></td>
+            <td class="url"><a href="https://winefasttrack-uat.excise.go.th">winefasttrack-uat.excise.go.th</a> (<a href="https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/aws/uat/nginx/default.conf"><code>default.conf</code></a>)</td>
             <td class="url"><a href="https://excise-wine-nodejs-api-staging.devthinkbit.com">excise-wine-nodejs-api-staging.devthinkbit.com</a></td>
             <td>gen ที่ origin <strong>staging</strong></td>
           </tr>
           <tr>
             <td>Production</td>
             <td class="url"><strong>POST</strong> <a href="https://api-taitaxes.excise.go.th/cloud/apiv2-Winesearch_Excise">https://api-taitaxes.excise.go.th/cloud/apiv2-Winesearch_Excise</a></td>
-            <td>มีใน <code>api-taitaxes-excise-go-th.conf</code></td>
-            <td class="url"><a href="https://winefasttrack.excise.go.th">winefasttrack.excise.go.th</a> (<code>prod.conf</code>)</td>
+            <td>มีใน <a href="https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf"><code>api-taitaxes-excise-go-th.conf</code></a></td>
+            <td class="url"><a href="https://winefasttrack.excise.go.th">winefasttrack.excise.go.th</a> (<a href="https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/aws/uat/nginx/prod.conf"><code>prod.conf</code></a>)</td>
             <td class="url"><a href="https://excise-wine-nodejs-api.devthinkbit.com">excise-wine-nodejs-api.devthinkbit.com</a></td>
             <td>gen ที่ origin <strong>prod</strong></td>
           </tr>
@@ -355,12 +383,35 @@ pre code {
       <p class="caption">path</p>
       <pre><code>ผู้เรียก
   → api-taitaxes.excise.go.th
-      ├─ /uat/cloud/...  → winefasttrack-uat → API staging
+      ├─ /uat/ft/...     → winefasttrack-uat → API staging
       └─ /cloud/...      → winefasttrack     → API prod</code></pre>
       <aside class="callout warn">
         <p class="label">ข้อควรระวัง</p>
         <p>Token / ข้อมูล / <code>JWT_SECRET</code> คนละ env — token UAT ใช้บน prod ไม่ได้ (ถ้า secret ไม่เหมือนกัน)</p>
       </aside>
+      <h3>2.1 Hop</h3>
+      <p><strong>Production (live)</strong></p>
+      <p class="url"><code>api-taitaxes</code> <code>/cloud/apiv2-Winesearch_Excise</code> → <code>winefasttrack.excise.go.th</code> → <code>excise-wine-nodejs-api.devthinkbit.com/apiv2-Winesearch_Excise</code></p>
+      <p><strong>UAT</strong></p>
+      <p class="url"><code>api-taitaxes</code> <code>/uat/ft/apiv2-Winesearch_Excise</code> → <code>winefasttrack-uat.excise.go.th/uat/ft/apiv2-Winesearch_Excise</code> → <code>excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-Winesearch_Excise</code></p>
+      <p>ระบบงานภายในกรมมี <a href="https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf#L146-L155"><code>/uat/ft/</code></a> แล้ว Cloud ต้องมี location <code>/uat/ft/apiv2-Winesearch_Excise</code> ชี้ origin staging (เฉพาะกว่า <code>/uat/ft/</code> ที่ชี้ frontend) — snippet ที่ <code>DRAFT.md</code> ข้อ 3</p>
+      <p>Nginx <strong>ไม่ได้</strong> ใส่ token ให้ — ส่ง header จาก client ต่อไปเท่านั้น</p>
+      <h3>2.2 ไฟล์ proxy</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>ไฟล์</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>ระบบงานภายในกรมสรรพสามิต</td><td><a href="https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf"><code>remote/gateway/conf.d/api-taitaxes-excise-go-th.conf</code></a></td></tr>
+          <tr><td>Cloud UAT</td><td><a href="https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/aws/uat/nginx/default.conf"><code>aws/uat/nginx/default.conf</code></a></td></tr>
+          <tr><td>Cloud prod</td><td><a href="https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/aws/uat/nginx/prod.conf"><code>aws/uat/nginx/prod.conf</code></a></td></tr>
+        </tbody>
+      </table>
+      <p>snippet location บน cloud UAT (<code>/uat/ft/apiv2-Winesearch_Excise</code>) อยู่ที่ <code>DRAFT.md</code> ข้อ 3</p>
+      <h3>2.3 ขีดจำกัด</h3>
       <table>
         <thead>
           <tr>
@@ -387,17 +438,17 @@ pre code {
           </tr>
         </tbody>
       </table>
-      <p><code>apiv2-ExciseToken</code> <strong>ไม่มี location</strong> ทั้งระบบงานภายในกรมสรรพสามิต และ cloud — ออก token ที่ origin ตาม env</p>
+      <p>ค้นจากรูปหรือหลายรายการอาจใช้เวลาใกล้เพดาน 600 วินาที</p>
+      <p><code>apiv2-ExciseToken</code> <strong>ไม่มี location</strong> ทั้งระบบงานภายในกรมสรรพสามิต และ cloud — ออก token ที่ origin ตาม env (ข้อ 3.1)</p>
       <p>HTTP ที่ระบบงานภายในกรมสรรพสามิต / cloud ถูก <code>301</code> ไป HTTPS (<code>TLSv1.2</code> / <code>TLSv1.3</code>)</p>
     </section>
 
-    <section id="s2">
+    <section id="s3">
       <h2>3. Authentication — ต้องใช้ access token</h2>
       <p>Endpoint ค้นไวน์ <strong>บังคับ</strong> <code>Authorization: Bearer &lt;access_token&gt;</code> ไม่มี token / token ไม่ผ่าน → <strong>ไม่ค้นไวน์</strong> ตอบ <code>401</code> ทันที</p>
       <pre><code>Authorization: Bearer &lt;jwt&gt;</code></pre>
-      <p>Nginx proxy <strong>ไม่ได้</strong> ใส่ token ให้ — ส่ง header จาก client ต่อไปเท่านั้น</p>
 
-      <h3>3.1 ทีม Thinkbit ออก token ให้ผู้เรียก (<code>apiv2-ExciseToken</code>)</h3>
+      <h3>3.1 ออก token ให้ผู้เรียก (<code>apiv2-ExciseToken</code>)</h3>
       <p>ผู้เรียก <strong>ไม่เรียก endpoint นี้เอง</strong> — Thinkbit gen ที่ origin แล้วส่ง JWT ให้ระบบนั้นเก็บไปใช้</p>
       <table>
         <thead>
@@ -411,10 +462,10 @@ pre code {
           <tr><td>Origin UAT</td><td class="url"><a href="https://excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-ExciseToken">https://excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-ExciseToken</a></td></tr>
           <tr><td>Origin prod</td><td class="url"><a href="https://excise-wine-nodejs-api.devthinkbit.com/apiv2-ExciseToken">https://excise-wine-nodejs-api.devthinkbit.com/apiv2-ExciseToken</a></td></tr>
           <tr><td>Auth ของตัว endpoint</td><td><strong>ไม่มี</strong> — ใครถึง origin ได้ก็ mint JWT ได้</td></tr>
-          <tr><td>Proxy <code>/cloud/</code> และ <code>/uat/cloud/</code></td><td><strong>ไม่มี location</strong> → ผู้เรียกที่ระบบงานภายในกรมสรรพสามิต เรียกออก token ไม่ได้</td></tr>
+          <tr><td>Proxy <code>/cloud/</code> <code>/uat/ft/</code></td><td><strong>ไม่มี location ของ <code>apiv2-ExciseToken</code></strong> → ผู้เรียกที่ระบบงานภายในกรมสรรพสามิต เรียกออก token ไม่ได้</td></tr>
         </tbody>
       </table>
-      <p class="caption"><code>src/app/routes/apiv2.ts</code></p>
+      <p class="caption"><a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/routes/apiv2.ts#L44"><code>src/app/routes/apiv2.ts</code></a></p>
       <pre><code>apiv2.post("/apiv2-ExciseToken", Apiv2Controller.ExciseToken);</code></pre>
       <p class="caption">ขั้นตอน</p>
       <pre><code>Thinkbit → origin POST /apiv2-ExciseToken → JWT (ไม่มี exp)
@@ -456,7 +507,7 @@ pre code {
   "iat": 0
 }</code></pre>
       <p>โค้ดที่เคยหมดอายุถูก comment ไว้แล้ว:</p>
-      <p class="caption"><code>src/app/controller/Apiv2Controller.ts</code></p>
+      <p class="caption"><a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/Apiv2Controller.ts#L2162-L2166"><code>src/app/controller/Apiv2Controller.ts</code></a></p>
       <pre><code>// let token = await jwt.sign(token_model, process.env.JWT_SECRET as string, { expiresIn: process.env.EXPIRE_TIME })
 let token = sign(token_model, process.env.JWT_SECRET as string);</code></pre>
       <p><strong>Response สำเร็จ</strong></p>
@@ -498,11 +549,11 @@ let token = sign(token_model, process.env.JWT_SECRET as string);</code></pre>
 
       <h3>3.2 Proof — ค้นไวน์บังคับ Bearer</h3>
       <p>1. Route ชี้ไปที่ handler <code>wse</code> โดยตรง</p>
-      <p class="caption"><code>src/app/routes/apiv2.ts</code> · <code>Apiv2Controller.ts</code></p>
+      <p class="caption"><a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/routes/apiv2.ts#L43"><code>src/app/routes/apiv2.ts</code></a> · <a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/Apiv2Controller.ts#L2082"><code>Apiv2Controller.ts</code></a></p>
       <pre><code>apiv2.post("/apiv2-Winesearch_Excise", Apiv2Controller.Winesearch_Excise);
 static Winesearch_Excise: RequestHandler = wse;</code></pre>
       <p>2. Handler ดึง token <strong>ก่อน</strong> validate body / ค้นข้อมูล ไม่มี <code>Authorization</code> → <code>401</code> verify ไม่ผ่าน → <code>401</code></p>
-      <p class="caption"><code>src/app/controller/wse.ts</code></p>
+      <p class="caption"><a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts#L23-L45"><code>src/app/controller/wse.ts</code></a></p>
       <pre><code>const resolveToken = (request: Request, response: Response&lt;any&gt;) =&gt; {
   let authHeader = request.headers["authorization"] as string;
   if (!authHeader) {
@@ -519,6 +570,7 @@ static Winesearch_Excise: RequestHandler = wse;</code></pre>
   return jwt.decode(token) as TokenData | null;
 };</code></pre>
       <p>3. Gate ของทั้ง endpoint: มี decoded token เท่านั้นถึงจะทำงานต่อ ไม่มี → <code>401</code></p>
+      <p class="caption"><a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts#L566-L571"><code>wse.ts</code> L566–L571</a> · <a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts#L1089-L1092">L1089–L1092</a></p>
       <pre><code>const wse: RequestHandler = async (request, response) =&gt; {
   try {
     let decodedToken = resolveToken(request, response);
@@ -555,7 +607,7 @@ HTTP/1.1 401 Unauthorized
 You are not authenticate !</code></pre>
     </section>
 
-    <section id="s3">
+    <section id="s4">
       <h2>4. Request</h2>
       <table>
         <thead>
@@ -613,7 +665,7 @@ You are not authenticate !</code></pre>
       </table>
     </section>
 
-    <section id="s4">
+    <section id="s5">
       <h2>5. Response</h2>
       <p><code>Content-Type: application/json</code> (ยกเว้น 401 / 404 ที่เป็น text)</p>
       <pre><code>{
@@ -732,7 +784,7 @@ You are not authenticate !</code></pre>
       </table>
     </section>
 
-    <section id="s5">
+    <section id="s6">
       <h2>6. HTTP Status</h2>
       <table>
         <thead>
@@ -753,7 +805,7 @@ You are not authenticate !</code></pre>
       <p><code>200</code> + <code>Success=false</code> เป็นไปได้ เมื่อค้นแล้วไม่มีผลที่ใช้ได้</p>
     </section>
 
-    <section id="s6">
+    <section id="s7">
       <h2>7. Examples</h2>
       <h3>7.1 ค้นจากชื่อ</h3>
       <p>request ตามการใช้งานจริง (<code>ReqNo</code> / <code>CategoryName</code> / <code>Country</code> / <code>Region</code> / <code>Piclabel</code> เป็น <code>""</code>) response เป็น mock ให้เห็นครบทั้งพบราคาและใกล้เคียง</p>
@@ -859,42 +911,76 @@ Content-Type: application/json
 }</code></pre>
     </section>
 
-    <section id="s7">
-      <h2>8. Client notes</h2>
-      <ol>
-        <li><strong>Access token บังคับ</strong> — ไม่มี <code>Authorization: Bearer &lt;jwt&gt;</code> แล้วได้ <code>401</code> ทันที ไม่ค้นไวน์</li>
-        <li><strong>Entry point</strong> — ผู้เรียกยิงที่ระบบงานภายในกรมสรรพสามิต (<code>api-taitaxes.excise.go.th</code>) เท่านั้น Thinkbit อย่ายิง origin ให้ผู้เรียกใช้โดยตรง UAT = <code>/uat/cloud/apiv2-Winesearch_Excise</code> (ต้องเพิ่ม location) · prod = <code>/cloud/apiv2-Winesearch_Excise</code></li>
-        <li><strong>ราคาเป็น THB</strong> — API ค้นราคาด้วย <code>Currencycode=THB</code></li>
-        <li><code>Avb</code> ต้องเป็น number — schema ไม่รับ string</li>
-        <li><code>Piclabel</code> เป็น optional — omit ได้ถ้าไม่ค้นจากรูป ถ้าส่งต้องเป็น base64 ของไฟล์รูป (jpeg / png) raw หรือ data URI ก็ได้ ห้าม URL / binary schema ไม่ validate ว่า base64 ถูกต้อง</li>
-        <li>ค้นจากรูปเกิดเมื่อ <code>Name === ""</code> และ <code>Piclabel</code> ไม่ว่าง หลัง trim — ตัด prefix <code>data:image/jpeg;base64,</code> / <code>data:image/png;base64,</code> แล้วส่งเข้าค้นรูป</li>
-        <li>Timeout ฝั่ง proxy สูงสุด 600 วินาที</li>
-        <li>Log — insert <code>tbExciseSearchLog</code> (<code>Reqno</code>, request, response, IP, token uid)</li>
-        <li><code>ReqNo</code> / <code>CategoryName</code> (request) เป็น passthrough — ไม่ใช้ค้น ผู้เรียกส่ง <code>""</code> ยังไม่มีแผนใช้จริง <code>CategoryName</code> ในผลค้นมาจากฐานข้อมูล</li>
-        <li>Body size — เพดานฝั่งผู้เรียกคือ <strong>10 MB ที่ระบบงานภายในกรมสรรพสามิต</strong></li>
-      </ol>
-    </section>
-
     <section id="s8">
-      <h2>9. Proxy (อ้างอิง DRAFT)</h2>
+      <h2>8. Downstream query</h2>
+      <p>หลังผ่าน token + schema origin (<a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts"><code>wse.ts</code></a>) ยิงต่อตามกิ่งด้านล่าง แล้วเก็บ log <code>tbExciseSearchLog</code> ราคาไม่ได้อยู่ใน nodejs — ยิง <code>GET {URL_SELF}/wine/WineSearch</code> ไป <a href="https://github.com/THINKBITTH/excise-wine-go-api">excise-wine-go-api</a> (<a href="https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/functions/wine/handler.go#L49"><code>handler.go</code></a> เรียก <a href="https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/services/wineseacher.go#L447"><code>WineSearchAllYear</code></a> เสมอ)</p>
+      <p>รายละเอียด SQL / HTTP ครบอยู่ที่ <code>QUERY.md</code></p>
+      <pre><code>POST Winesearch_Excise
+  ├─ มี Piclabel และ Name ว่าง → POST /apiv2-searchImageByWS → Algolia
+  └─ มี Name → Algolia
+       ├─ 1 hit / หลาย hit / 0 hit (Vivino)
+       └─ GET /wine/WineSearch
+            → go-api WineSearchAllYear
+                 ├─ vw_GetWineSearchAgg (เจอปี+ขวด)
+                 └─ ไม่เจอ → Wine Searcher API + tbWineLiquorSource
+            → tbExciseSearchLog (nodejs)</code></pre>
+
+      <h3>8.1 SQL ฝั่ง nodejs — เทียบชื่อ+ปี (เมื่อ Algolia มากกว่า 1 hit)</h3>
+      <p class="caption"><a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts#L267"><code>wse.ts</code> <code>IndexSearchMoreThanOne</code></a></p>
+      <pre><code>SELECT A.DisplayName as WineName, B.WineLiquorYear AS Year, A.Country, B.Alcohol as AVB
+FROM {DATABASE_NAME}.dbo.tbWineLiquor AS A
+INNER JOIN {DATABASE_NAME}.dbo.tbWineLiquorPic AS B ON A.Id = B.WineLiquorId
+WHERE A.DisplayName = N'{winename}' AND B.WineLiquorYear = '{Vintage}';</code></pre>
+      <p><code>ReqNo</code> / <code>CategoryName</code> / <code>Country</code> / <code>Region</code> จาก request <strong>ไม่อยู่ใน WHERE</strong></p>
+
+      <h3>8.2 SQL ฝั่ง nodejs — log</h3>
+      <p class="caption"><a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts#L830"><code>wse.ts</code> insert <code>tbExciseSearchLog</code></a></p>
+      <pre><code>INSERT INTO [dbo].[tbExciseSearchLog] (
+  [Reqno], [Winename], [Categoryname], [Vintage], [Bottlesize], [AVB],
+  [Country], [Region], [Create_date], [Create_by], [Update_date], [Update_by],
+  [Status], [IP], [Agent], [Request], [Response]
+) VALUES (...)</code></pre>
+      <p><code>@Request</code> = JSON ของ body ทั้งก้อน รวม <code>Piclabel</code> — ไม่ insert เมื่อ <code>401</code> / <code>400</code></p>
+
+      <h3>8.3 GET /wine/WineSearch — <a href="https://github.com/THINKBITTH/excise-wine-go-api">excise-wine-go-api</a></h3>
+      <p>nodejs ส่ง <code>Currencycode=THB</code> · <code>uid=12</code> · ไม่ส่ง <code>wineType</code> · <code>BottleSize</code> เป็นชื่อที่ map แล้ว เช่น <code>Bottle (750ml)</code></p>
+      <pre><code>GET {URL_SELF}/wine/WineSearch
+  ?Winename={encoded}&amp;Vintage={year}&amp;Location={country}&amp;AVB={alcohol}
+  &amp;BottleSize={mapped}&amp;Currencycode=THB&amp;uid=12&amp;BottleCode={code}</code></pre>
+      <p><code>data</code> เป็น <strong>array</strong> — <a href="https://github.com/THINKBITTH/excise-wine-nodejs-api/blob/c3950ca0d80cce3f35eaf1f76c98caff400fef15/src/app/controller/wse.ts"><code>wse.ts</code></a> จึงเข้ากิ่งใกล้เคียงเมื่อ <code>data.length &gt; 0</code></p>
+      <p>ลำดับใน go-api:</p>
+      <ol>
+        <li><code>INSERT tbWineSearchLog</code> (async) — คนละตารางกับข้อ 8.2</li>
+        <li><code>SELECT</code> จาก <code>vw_GetWineSearchAgg</code></li>
+        <li>ใน memory ตัด <code>NV</code> แล้ว filter ขวด / ปี</li>
+        <li>ไม่เจอปีหรือขวด → <code>wineSearchRealtime</code> (Wine-Searcher แล้ว <code>INSERT tbWineLiquorSource</code>)</li>
+      </ol>
+      <p>SQL หลัก (<a href="https://github.com/THINKBITTH/excise-wine-go-api/blob/d57c5add1f1b0252a5e0d03ce141d74abe5b1cfb/api/common/repositorys/wineseacher.go#L661"><code>GetWineSearchAllYear</code></a>) — <code>BottleSize</code> ไม่อยู่ใน WHERE · <code>AVB</code> อยู่ใน WHERE เมื่อค่าไม่เป็น 0</p>
+      <pre><code>SELECT ... FROM {DB_NAME}.[dbo].[vw_GetWineSearchAgg]
+WHERE WineName = N'{winename}'
+  -- AND AVB = {avb}   เมื่อ AVB != 0
+ORDER BY [Year] DESC, BottleSize</code></pre>
+      <p><code>vw_GetWineSearch</code> / <code>CalculateWinePrice</code> เป็น path เก่า handler ไม่เรียกจาก endpoint นี้แล้ว</p>
+
+      <h3>8.4 ฟิลด์ request ถูก query หรือไม่</h3>
       <table>
         <thead>
           <tr>
-            <th>Layer</th>
-            <th>ไฟล์</th>
+            <th>ฟิลด์</th>
+            <th>ใช้ค้น?</th>
+            <th>ไปที่ไหน</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>ระบบงานภายในกรมสรรพสามิต</td><td><code>excise-wine-proxy/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf</code></td></tr>
-          <tr><td>Cloud UAT</td><td><code>excise-wine-proxy/aws/uat/nginx/default.conf</code></td></tr>
-          <tr><td>Cloud prod</td><td><code>excise-wine-proxy/aws/uat/nginx/prod.conf</code></td></tr>
+          <tr><td><code>Name</code></td><td>ใช่</td><td>Algolia / Vivino / WineSearch <code>Winename</code></td></tr>
+          <tr><td><code>Vintage</code></td><td>ใช่</td><td>SQL master · filter ปีหลัง Agg</td></tr>
+          <tr><td><code>BottleSize</code></td><td>ใช่</td><td>map แล้ว Go filter ใน memory</td></tr>
+          <tr><td><code>Avb</code></td><td>ไม่ตรงจาก request</td><td>WineSearch ใช้ AVB จาก Algolia/SQL</td></tr>
+          <tr><td><code>Country</code> / <code>Region</code></td><td>ไม่</td><td>log · <code>Location</code> ใช้ตอน fallback</td></tr>
+          <tr><td><code>ReqNo</code> / <code>CategoryName</code></td><td>ไม่</td><td><code>tbExciseSearchLog</code> เท่านั้น</td></tr>
+          <tr><td><code>Piclabel</code></td><td>เมื่อค้นจากรูป</td><td><code>apiv2-searchImageByWS</code> + JSON ใน log</td></tr>
         </tbody>
       </table>
-      <p><strong>Production (live)</strong></p>
-      <p class="url"><code>api-taitaxes</code> <code>/cloud/apiv2-Winesearch_Excise</code> → <code>winefasttrack.excise.go.th</code> → <code>excise-wine-nodejs-api.devthinkbit.com/apiv2-Winesearch_Excise</code></p>
-      <p><strong>UAT</strong> (cloud + origin มีแล้ว, ระบบงานภายในกรมสรรพสามิต ต้องเพิ่ม location)</p>
-      <p class="url"><code>api-taitaxes</code> <code>/uat/cloud/apiv2-Winesearch_Excise</code> → <code>winefasttrack-uat.excise.go.th/cloud/apiv2-Winesearch_Excise</code> → <code>excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-Winesearch_Excise</code></p>
-      <p>snippet ที่ต้องเพิ่มอยู่ที่ <code>DRAFT.md</code> ข้อ 3</p>
     </section>
   </article>
 </body>

@@ -6,7 +6,7 @@
 |---|---|
 | ผู้เรียก | ระบบงานที่ได้รับสิทธิ์เชื่อม API |
 | API | `POST …/apiv2-Winesearch_Excise` |
-| Source | `excise-wine-nodejs-api` |
+| Source | [excise-wine-nodejs-api](https://github.com/THINKBITTH/excise-wine-nodejs-api) `staging/aws` [`c3950ca`](https://github.com/THINKBITTH/excise-wine-nodejs-api/commit/c3950ca0d80cce3f35eaf1f76c98caff400fef15) · [excise-wine-proxy](https://github.com/THINKBITTH/excise-wine-proxy) `main` [`cf51c2d`](https://github.com/THINKBITTH/excise-wine-proxy/commit/cf51c2d95fcb5176c904265e9ef3ed83a02ef102) |
 
 ---
 
@@ -14,8 +14,8 @@
 
 | | UAT | Production |
 |---|---|---|
-| **Client URL (DC)** | `https://api-taitaxes.excise.go.th/uat/cloud/apiv2-Winesearch_Excise` | `https://api-taitaxes.excise.go.th/cloud/apiv2-Winesearch_Excise` |
-| DC location | **ยังไม่มี — ต้องเพิ่ม** | มีแล้ว |
+| **Client URL (DC)** | `https://api-taitaxes.excise.go.th/uat/ft/apiv2-Winesearch_Excise` | `https://api-taitaxes.excise.go.th/cloud/apiv2-Winesearch_Excise` |
+| DC location | มีแล้ว [`/uat/ft/`](https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf#L146-L155) | มีแล้ว `/cloud/apiv2-Winesearch_Excise` |
 | Cloud | `winefasttrack-uat.excise.go.th` | `winefasttrack.excise.go.th` |
 | Origin | `excise-wine-nodejs-api-staging.devthinkbit.com` | `excise-wine-nodejs-api.devthinkbit.com` |
 | Token | gen ที่ origin **staging** | gen ที่ origin **prod** |
@@ -23,7 +23,7 @@
 ```mermaid
 flowchart LR
   C[ผู้เรียก] --> DC["api-taitaxes.excise.go.th"]
-  DC -->|/uat/cloud/...| UAT["cloud UAT<br/>winefasttrack-uat"]
+  DC -->|/uat/ft/...| UAT["cloud UAT<br/>winefasttrack-uat"]
   DC -->|/cloud/...| PROD["cloud prod<br/>winefasttrack"]
   UAT --> STG["API staging"]
   PROD --> PR["API prod"]
@@ -49,16 +49,18 @@ Cloud location รับ 50 MB / origin รับ 100 MB — ไม่ถึง�
 
 | Layer | ไฟล์ |
 |---|---|
-| Internal DC | `excise-wine-proxy/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf` |
-| Cloud UAT | `excise-wine-proxy/aws/uat/nginx/default.conf` |
-| Cloud prod | `excise-wine-proxy/aws/uat/nginx/prod.conf` |
-| API | `excise-wine-nodejs-api` |
+| Internal DC | [`remote/gateway/conf.d/api-taitaxes-excise-go-th.conf`](https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf) |
+| Cloud UAT | [`aws/uat/nginx/default.conf`](https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/aws/uat/nginx/default.conf) |
+| Cloud prod | [`aws/uat/nginx/prod.conf`](https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/aws/uat/nginx/prod.conf) |
+| API | [excise-wine-nodejs-api](https://github.com/THINKBITTH/excise-wine-nodejs-api) |
 
 ---
 
-## 1. Cloud UAT — มีแล้ว
+## 1. Cloud UAT — มี `/cloud/apiv2-Winesearch_Excise` แล้ว (DC UAT ไม่ใช้ path นี้)
 
 `server_name winefasttrack-uat.excise.go.th`
+
+ผู้เรียก UAT เข้าทาง DC `/uat/ft/` ไม่ใช่ `/cloud/` — location ด้านล่างใช้ได้ถ้าเรียก cloud โดยตรง แต่ไม่ถึงจาก `/uat/ft/`
 
 ```nginx
 location /cloud/apiv2-Winesearch_Excise {
@@ -90,11 +92,11 @@ location /cloud/apiv2-Winesearch_Excise {
 }
 ```
 
-## 3. Internal DC — prod มีแล้ว / UAT ต้องเพิ่ม
+## 3. Internal DC — มีแล้วทั้งสอง env
 
 `server_name api-taitaxes.excise.go.th`
 
-**Prod (ปัจจุบัน)**
+**Prod**
 
 ```nginx
 location /cloud/apiv2-Winesearch_Excise {
@@ -105,10 +107,31 @@ location /cloud/apiv2-Winesearch_Excise {
 }
 ```
 
-**UAT (เพิ่ม)** — ให้ลูกค้าแยก env ได้โดยไม่ต้องออกเน็ตไป cloud
+**UAT** — ใช้ [`/uat/ft/`](https://github.com/THINKBITTH/excise-wine-proxy/blob/cf51c2d95fcb5176c904265e9ef3ed83a02ef102/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf#L146-L155) ที่มีอยู่ ไม่เพิ่ม `/uat/cloud/`
 
 ```nginx
-location /uat/cloud/apiv2-Winesearch_Excise {
+location /uat/ft/ {
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection keep-alive;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_cache_bypass $http_upgrade;
+
+    proxy_pass https://winefasttrack-uat.excise.go.th/uat/ft/;
+}
+```
+
+ผู้เรียกยิง `POST /uat/ft/apiv2-Winesearch_Excise` แล้ว DC ส่งต่อไป `winefasttrack-uat.excise.go.th/uat/ft/apiv2-Winesearch_Excise`
+
+## 4. Cloud UAT — ต้องเพิ่ม location ของ API
+
+`server_name winefasttrack-uat.excise.go.th`
+
+`/uat/ft/` ที่มีอยู่ชี้ frontend (`wine-fasttrack-staging`) ต้องเพิ่ม location ที่ **เฉพาะกว่า** เพื่อให้ค้นไวน์ไป origin staging
+
+```nginx
+location /uat/ft/apiv2-Winesearch_Excise {
     proxy_ssl_server_name on;
     proxy_ssl_name excise-wine-nodejs-api-staging.devthinkbit.com;
     proxy_set_header Upgrade $http_upgrade;
@@ -117,6 +140,10 @@ location /uat/cloud/apiv2-Winesearch_Excise {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_cache_bypass $http_upgrade;
-    proxy_pass https://winefasttrack-uat.excise.go.th/cloud/apiv2-Winesearch_Excise;
+    client_max_body_size 50m;
+    proxy_connect_timeout 600;
+    proxy_send_timeout 600;
+    proxy_read_timeout 600;
+    proxy_pass https://excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-Winesearch_Excise;
 }
 ```

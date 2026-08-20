@@ -6,7 +6,7 @@ API สำหรับค้นหาข้อมูลไวน์ และร
 
 | Environment | Method | URL | Content-Type |
 |---|---|---|---|
-| UAT | `POST` | `https://api-taitaxes.excise.go.th/uat/cloud/apiv2-Winesearch_Excise` | `application/json` |
+| UAT | `POST` | `https://api-taitaxes.excise.go.th/uat/ft/apiv2-Winesearch_Excise` | `application/json` |
 | Production | `POST` | `https://api-taitaxes.excise.go.th/cloud/apiv2-Winesearch_Excise` | `application/json` |
 
 Access Token **คนละ token ต่อ environment** — token ของ UAT ใช้กับ Production ไม่ได้
@@ -60,7 +60,7 @@ Authorization: Bearer <access_token>
 Content-Type: application/json
 ```
 
-UAT ใช้ path `/uat/cloud/apiv2-Winesearch_Excise` และ token ของ UAT
+UAT ใช้ path `/uat/ft/apiv2-Winesearch_Excise` และ token ของ UAT
 
 ---
 
