@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ค้นหาไวน์และราคาแนะนำขายเบื้องต้น — ฉบับผู้เรียก</title>
+  <style>
+@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap");
+
+:root {
+  --font: "TH Sarabun New", "Sarabun", "Angsana New", "Tahoma", sans-serif;
+  --ink: #111111;
+  --mute: #444444;
+  --rule: #111111;
+  --rule-soft: #b0b0b0;
+  --fill: #eceff3;
+  --row: #f5f7f9;
+  --warn: #eceff3;
+  --paper: #ffffff;
+  --desk: #cfc9c0;
+  --navy: #1b365d;
+  --section: #1b365d;
+  --note: #f7f7f7;
+  --link: #0563c1;
+
+  --fs-cover: 22pt;
+  --fs-h1: 18pt;
+  --fs-h2: 16pt;
+  --fs-body: 14pt;
+  --fs-small: 11pt;
+  --fs-meta: 10pt;
+
+  --lh: 1.45;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 18mm 18mm 20mm 22mm;
+
+  @top-center {
+    content: "ค้นหาไวน์และราคาแนะนำขายเบื้องต้น · ฉบับผู้เรียก";
+    font-family: "TH Sarabun New", Sarabun, sans-serif;
+    font-size: 10pt;
+    color: #444;
+  }
+
+  @bottom-left {
+    content: "WINE-SEARCH-EXCISE-SPEC";
+    font-size: 10pt;
+  }
+
+  @bottom-right {
+    content: "หน้า " counter(page);
+    font-size: 10pt;
+  }
+}
+
+@page :first {
+  @top-center { content: none; }
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: 14pt; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--desk);
+  line-height: var(--lh);
+}
+
+a {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.document {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 16px auto 48px;
+  padding: 18mm 18mm 20mm 22mm;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px #bbb, 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+h2, h3 {
+  page-break-after: avoid;
+}
+
+.doc-head {
+  text-align: center;
+  border-bottom: 3px double var(--section);
+  padding-bottom: 12pt;
+  margin-bottom: 16pt;
+}
+
+.org {
+  margin: 0;
+  font-size: 14pt;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--navy);
+}
+
+.doc-type {
+  margin: 2pt 0 8pt;
+  font-size: var(--fs-small);
+}
+
+.doc-title {
+  margin: 0 0 4pt;
+  font-size: var(--fs-cover);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.doc-sub {
+  margin: 0 0 12pt;
+  font-size: 14pt;
+  color: var(--mute);
+}
+
+.meta {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--fs-small);
+}
+
+.meta th {
+  width: 18%;
+  background: var(--fill);
+  font-weight: 700;
+}
+
+.meta th, .meta td {
+  border: 0.6pt solid var(--rule);
+  padding: 4pt 8pt;
+}
+
+h2 {
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  margin: 18pt 0 8pt;
+  padding-bottom: 3pt;
+  border-bottom: 0.75pt solid var(--section);
+  page-break-after: avoid;
+  break-after: avoid;
+  break-inside: avoid;
+}
+
+section > h2 {
+  break-before: page;
+  page-break-before: always;
+}
+
+h3 {
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  margin: 14pt 0 6pt;
+  break-after: avoid;
+  break-inside: avoid;
+}
+
+p {
+  margin: 0 0 8pt;
+  font-size: var(--fs-body);
+  text-align: justify;
+  orphans: 3;
+  widows: 3;
+}
+
+ul, ol { margin: 0 0 10pt; padding-left: 22pt; }
+li { margin-bottom: 3pt; orphans: 3; widows: 3; }
+
+ul { list-style: none; }
+ul > li { position: relative; }
+ul > li::before {
+  content: "■";
+  position: absolute;
+  left: -16pt;
+  top: 0;
+  height: calc(1em * var(--lh));
+  display: flex;
+  align-items: center;
+  font-size: 0.85em;
+  line-height: 1;
+  color: var(--section);
+}
+
+.toc {
+  margin: 0 0 18pt;
+  page-break-after: always;
+}
+.toc ol { padding-left: 22pt; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12pt;
+  margin: 0 0 12pt;
+  break-inside: auto;
+}
+
+th, td {
+  border: 0.6pt solid var(--rule);
+  padding: 5pt 8pt;
+  vertical-align: top;
+  text-align: left;
+}
+
+thead th {
+  background: var(--fill);
+  font-weight: 700;
+  text-align: center;
+}
+
+tbody tr:nth-child(even) { background: var(--row); }
+
+thead { display: table-header-group; }
+tr { page-break-inside: avoid; }
+
+.col-name { width: 22%; }
+.col-type { width: 14%; }
+.col-req  { width: 12%; }
+.col-env  { width: 32%; }
+
+.url {
+  font-size: 10pt;
+  word-break: break-all;
+}
+
+.callout {
+  border: 0.6pt solid var(--rule);
+  border-left: 4pt solid var(--navy);
+  padding: 8pt 10pt;
+  margin: 0 0 12pt;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  background: var(--row);
+}
+
+.callout.warn {
+  background: var(--warn);
+  border-left-color: var(--navy);
+}
+
+.callout .label {
+  margin: 0 0 4pt;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+code {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+p code, td code, li code, th code {
+  font-weight: 700;
+  border: 0;
+  padding: 0;
+  background: none;
+}
+
+pre {
+  border: 0.6pt solid var(--rule);
+  padding: 10pt 12pt;
+  margin: 0 0 12pt;
+  background: #fff;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 11pt;
+  line-height: 1.35;
+}
+
+pre code {
+  font-family: "Sarabun", "Courier New", monospace;
+  font-size: 11pt;
+  font-weight: 400;
+  border: 0;
+  padding: 0;
+}
+
+.toolbar { text-align: right; margin: 0 0 12pt; }
+.toolbar button {
+  font: 14pt var(--font);
+  padding: 4pt 12pt;
+  border: 0.6pt solid var(--rule);
+  background: #fff;
+  cursor: pointer;
+}
+
+@media print {
+  html, body {
+    background: #fff !important;
+    color: var(--ink);
+  }
+  .document {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border: 0;
+  }
+  a { color: var(--link); text-decoration: underline; }
+  .no-print { display: none !important; }
+}
+  </style>
+</head>
+<body>
+  <article class="document">
+    <p class="no-print toolbar">
+      <button type="button" onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button>
+    </p>
+
+    <header class="doc-head">
+      <p class="org">กรมสรรพสามิต</p>
+      <p class="doc-type">เอกสารคู่มือ · ฉบับผู้เรียก</p>
+      <h1 class="doc-title">ค้นหาไวน์และราคาแนะนำขายเบื้องต้น</h1>
+      <p class="doc-sub">Wine Search API Specification</p>
+      <table class="meta">
+        <tr>
+          <th>เลขที่เอกสาร</th><td>WINE-SEARCH-EXCISE-SPEC</td>
+          <th>วันที่</th><td>20 สิงหาคม 2569</td>
+        </tr>
+        <tr>
+          <th>รุ่น</th><td>1.0</td>
+          <th>ชั้นความลับ</th><td>สำหรับผู้ได้รับสิทธิ์เรียก API</td>
+        </tr>
+      </table>
+    </header>
+
+    <nav class="toc">
+      <h2>สารบัญ</h2>
+      <ol>
+        <li><a href="#s1">Environment และ Endpoint</a></li>
+        <li><a href="#s2">Access Token</a></li>
+        <li><a href="#s3">Request</a></li>
+        <li><a href="#s4">Response</a></li>
+        <li><a href="#s5">HTTP Status</a></li>
+        <li><a href="#s6">Examples</a></li>
+        <li><a href="#s7">หมายเหตุ</a></li>
+      </ol>
+    </nav>
+
+    <section id="s1">
+      <h2>1. Environment และ Endpoint</h2>
+      <p>API นี้ใช้ค้นหาข้อมูลไวน์ และราคาแนะนำขายเบื้องต้น (บาท) จากชื่อสินค้า หรือรูปฉลาก</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Environment</th>
+            <th>Method</th>
+            <th>URL</th>
+            <th>Content-Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>UAT</td>
+            <td><code>POST</code></td>
+            <td class="url"><a href="https://api-taitaxes.excise.go.th/uat/cloud/apiv2-Winesearch_Excise">https://api-taitaxes.excise.go.th/uat/cloud/apiv2-Winesearch_Excise</a></td>
+            <td><code>application/json</code></td>
+          </tr>
+          <tr>
+            <td>Production</td>
+            <td><code>POST</code></td>
+            <td class="url"><a href="https://api-taitaxes.excise.go.th/cloud/apiv2-Winesearch_Excise">https://api-taitaxes.excise.go.th/cloud/apiv2-Winesearch_Excise</a></td>
+            <td><code>application/json</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <aside class="callout warn">
+        <p class="label">ข้อควรระวัง</p>
+        <p>Access Token คนละ token ต่อ environment — token ของ UAT ใช้กับ Production ไม่ได้ เรียกเฉพาะ URL ในตารางนี้ ตาม environment ที่ใช้งาน</p>
+      </aside>
+    </section>
+
+    <section id="s2">
+      <h2>2. Access Token</h2>
+      <p>ต้องส่ง Access Token ทุกครั้งที่เรียก API</p>
+      <pre><code>Authorization: Bearer &lt;access_token&gt;</code></pre>
+      <p>ไม่มี token หรือ token ไม่ถูกต้อง <strong>จะไม่ค้นข้อมูล</strong> และได้ <code>401</code></p>
+
+      <h3>2.1 ได้ token อย่างไร?</h3>
+      <p>ผู้มีสิทธิ์ออก Access Token คือ <strong>ผู้ดูแลระบบ</strong> และ/หรือ <strong>ผู้พัฒนาระบบ</strong> ผู้เรียกออกเองไม่ได้</p>
+      <ol>
+        <li>ติดต่อผู้ดูแลระบบ หรือผู้พัฒนาระบบ เพื่อขอ Access Token</li>
+        <li>ผู้ออกสิทธิ์ออกให้ <strong>หนึ่ง token ต่อ environment</strong> (UAT คนละ token กับ Production) แล้วส่งค่า token มาทางช่องทางที่ตกลงกัน</li>
+        <li>เก็บ token ไว้ฝั่งระบบผู้เรียก (environment / secret store) — <strong>ห้ามฝังในโค้ดที่เผยแพร่ หรือส่งต่อให้บุคคลอื่น</strong></li>
+        <li>นำค่าที่ได้ไปใส่ header <code>Authorization: Bearer ...</code> ทุก request</li>
+      </ol>
+      <p>ไม่มีการลงทะเบียนหรือออก token ผ่าน URL ค้นไวน์นี้</p>
+
+      <h3>2.2 อายุการใช้งาน</h3>
+      <p>Access Token <strong>ไม่มีวันหมดอายุในตัว</strong> — ออกให้แล้วใช้ต่อเนื่องได้จนกว่าผู้ดูแลระบบ หรือผู้พัฒนาระบบจะแจ้งให้เปลี่ยน</p>
+      <p>ขอ token ใหม่เมื่อ:</p>
+      <ul>
+        <li>ได้รับแจ้งให้ rotate / เปลี่ยน token</li>
+        <li>เรียก API แล้วได้ <code>401</code> ทั้งที่ส่ง token ครบ</li>
+      </ul>
+      <table>
+        <thead>
+          <tr>
+            <th>กรณี</th>
+            <th>HTTP</th>
+            <th>Body (text)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ไม่ส่ง <code>Authorization</code></td>
+            <td><code>401</code></td>
+            <td>You are not authenticate !</td>
+          </tr>
+          <tr>
+            <td>Token ไม่ถูกต้อง</td>
+            <td><code>401</code></td>
+            <td>Invalid Token</td>
+          </tr>
+          <tr>
+            <td>Token ใช้ไม่ได้</td>
+            <td><code>401</code></td>
+            <td>You are Not authenticate !!!</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>2.3 ตัวอย่างการส่ง</h3>
+      <pre><code>POST /cloud/apiv2-Winesearch_Excise HTTP/1.1
+Host: api-taitaxes.excise.go.th
+Authorization: Bearer &lt;access_token&gt;
+Content-Type: application/json</code></pre>
+      <p>UAT ใช้ path <code>/uat/cloud/apiv2-Winesearch_Excise</code> และ token ของ UAT</p>
+    </section>
+
+    <section id="s3">
+      <h2>3. Request</h2>
+      <p>ห้ามส่ง field นอกตารางนี้</p>
+      <table>
+        <thead>
+          <tr>
+            <th class="col-name">Field</th>
+            <th class="col-type">Type</th>
+            <th class="col-req">Required</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>ReqNo</code></td>
+            <td>string</td>
+            <td>yes</td>
+            <td>เลขที่คำขอของฝั่งผู้เรียก ใช้จับคู่ request/response</td>
+          </tr>
+          <tr>
+            <td><code>Name</code></td>
+            <td>string</td>
+            <td>yes</td>
+            <td>ชื่อไวน์ — ถ้าเป็น <code>""</code> (string ว่าง) และมี <code>Piclabel</code> จะค้นจากรูปฉลาก</td>
+          </tr>
+          <tr>
+            <td><code>CategoryName</code></td>
+            <td>string</td>
+            <td>yes</td>
+            <td>กลุ่ม/ประเภท ตามที่ฝั่งผู้เรียกจัดไว้ — ไม่มี master data และไม่มีรายการค่าที่ต้องตรง</td>
+          </tr>
+          <tr>
+            <td><code>Vintage</code></td>
+            <td>string</td>
+            <td>yes</td>
+            <td>ปี เช่น <code>"2018"</code> หรือ <code>"NV"</code></td>
+          </tr>
+          <tr>
+            <td><code>BottleSize</code></td>
+            <td>string</td>
+            <td>yes</td>
+            <td>ขนาดขวด — ดูค่าที่รองรับด้านล่าง</td>
+          </tr>
+          <tr>
+            <td><code>Avb</code></td>
+            <td>number</td>
+            <td>yes</td>
+            <td>แอลกอฮอล์ (%) ต้องเป็นตัวเลข ไม่ใช่ string</td>
+          </tr>
+          <tr>
+            <td><code>Country</code></td>
+            <td>string</td>
+            <td>yes</td>
+            <td>ประเทศ</td>
+          </tr>
+          <tr>
+            <td><code>Region</code></td>
+            <td>string</td>
+            <td>yes</td>
+            <td>ภูมิภาค</td>
+          </tr>
+          <tr>
+            <td><code>Piclabel</code></td>
+            <td>string</td>
+            <td>no</td>
+            <td>รูปฉลากเป็น base64 ของไฟล์รูป (jpeg / png) — ใช้เมื่อ <code>Name</code> เป็น <code>""</code> (string ว่าง)</td>
+          </tr>
+        </tbody>
+      </table>
+      <p><code>CategoryName</code> ส่งตามการจัดกลุ่มของฝั่งผู้เรียกได้เลย ไม่มีรายการกลางให้เลือก และไม่ต้องตรงกับค่าที่กำหนดไว้ล่วงหน้า ใช้เป็นข้อความกำกับคำขอ</p>
+      <p><code>Piclabel</code> ต้องเป็น string ของรูปแบบ <strong>base64</strong> ส่งได้ 2 แบบ: raw base64 เช่น ขึ้นต้น <code>/9j/</code> (JPEG) หรือ data URI <code>data:image/jpeg;base64,...</code> / <code>data:image/png;base64,...</code> ห้ามส่ง URL รูป และห้ามส่ง binary ใน JSON</p>
+
+      <h3>3.1 BottleSize ที่รองรับ</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ค่าที่ส่ง</th>
+            <th>ความหมาย</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>375ml</code> หรือ <code>0.375</code></td>
+            <td>Half Bottle (375ml)</td>
+          </tr>
+          <tr>
+            <td><code>750ml</code> หรือ <code>0.750</code></td>
+            <td>Bottle (750ml)</td>
+          </tr>
+          <tr>
+            <td><code>1500ml</code> หรือ <code>1.500</code></td>
+            <td>Magnum (1.5L)</td>
+          </tr>
+          <tr>
+            <td><code>3000ml</code> หรือ <code>3.000</code></td>
+            <td>Double Magnums (3L)</td>
+          </tr>
+          <tr>
+            <td>ค่าอื่น</td>
+            <td>ใช้ค่าที่ส่งมาตรงๆ</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="s4">
+      <h2>4. Response</h2>
+      <p>สำเร็จทั่วไปเป็น JSON</p>
+      <pre><code>{
+  "Success": true,
+  "Message": "",
+  "ReqNo": "",
+  "Query": "",
+  "Vintage": "",
+  "Size": "",
+  "Data": [],
+  "Suggestions": []
+}</code></pre>
+      <table>
+        <thead>
+          <tr>
+            <th class="col-name">Field</th>
+            <th class="col-type">Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Success</code></td>
+            <td>boolean</td>
+            <td>ผลโดยรวม</td>
+          </tr>
+          <tr>
+            <td><code>Message</code></td>
+            <td>string</td>
+            <td>ข้อความสถานะ (ภาษาไทย)</td>
+          </tr>
+          <tr>
+            <td><code>ReqNo</code></td>
+            <td>string</td>
+            <td>ค่าเดียวกับที่ส่งไป</td>
+          </tr>
+          <tr>
+            <td><code>Query</code></td>
+            <td>string</td>
+            <td>ชื่อที่ใช้ค้น (<code>Name</code>)</td>
+          </tr>
+          <tr>
+            <td><code>Vintage</code></td>
+            <td>string</td>
+            <td>ปีจาก request</td>
+          </tr>
+          <tr>
+            <td><code>Size</code></td>
+            <td>string</td>
+            <td><code>BottleSize</code> ตามที่ส่งมา</td>
+          </tr>
+          <tr>
+            <td><code>Data</code></td>
+            <td>array</td>
+            <td>ผลหลัก</td>
+          </tr>
+          <tr>
+            <td><code>Suggestions</code></td>
+            <td>array</td>
+            <td>รายการใกล้เคียง</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>4.1 Data[]</h3>
+      <table>
+        <thead>
+          <tr>
+            <th class="col-name">Field</th>
+            <th class="col-type">Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Name</code></td><td>string</td><td>ชื่อไวน์</td></tr>
+          <tr><td><code>Pic</code></td><td>string</td><td>URL รูป (ว่างได้)</td></tr>
+          <tr><td><code>CategoryName</code></td><td>string</td><td>ประเภท</td></tr>
+          <tr><td><code>Country</code></td><td>string</td><td>ประเทศ</td></tr>
+          <tr><td><code>Region</code></td><td>string</td><td>ภูมิภาค</td></tr>
+          <tr><td><code>BottleSize</code></td><td>string</td><td>ขนาดขวด (อาจถูกแปลงเป็นชื่อเต็ม เช่น <code>Bottle (750ml)</code>)</td></tr>
+          <tr><td><code>Avb</code></td><td>number</td><td>แอลกอฮอล์ (%)</td></tr>
+          <tr><td><code>Vintage</code></td><td>string</td><td>ปี</td></tr>
+          <tr><td><code>RecommendPrice</code></td><td>number</td><td>ราคาแนะนำ (บาท)</td></tr>
+          <tr><td><code>RecommendMaxPrice</code></td><td>number</td><td>ราคาสูงสุด (บาท)</td></tr>
+          <tr><td><code>RecommendMinPrice</code></td><td>number</td><td>ราคาต่ำสุด (บาท)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.2 Suggestions[]</h3>
+      <table>
+        <thead>
+          <tr>
+            <th class="col-name">Field</th>
+            <th class="col-type">Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Name</code></td><td>string</td><td>ชื่อไวน์</td></tr>
+          <tr><td><code>Pic</code></td><td>string</td><td>URL รูป</td></tr>
+          <tr><td><code>CategoryName</code></td><td>string</td><td>ประเภท</td></tr>
+          <tr><td><code>Country</code></td><td>string</td><td>ประเทศ</td></tr>
+          <tr><td><code>Region</code></td><td>string</td><td>ภูมิภาค</td></tr>
+          <tr><td><code>BottleSize</code></td><td>string</td><td>ขนาดขวด</td></tr>
+          <tr><td><code>Avb</code></td><td>number</td><td>แอลกอฮอล์ (%)</td></tr>
+          <tr><td><code>Vintages</code></td><td>array</td><td>ปีและราคา</td></tr>
+        </tbody>
+      </table>
+      <p><code>Vintages[]</code></p>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Vintage</code></td><td>string</td></tr>
+          <tr><td><code>RecommendPrice</code></td><td>number</td></tr>
+          <tr><td><code>RecommendMaxPrice</code></td><td>number</td></tr>
+          <tr><td><code>RecommendMinPrice</code></td><td>number</td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.3 Message</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Message</th>
+            <th>ความหมาย</th>
+            <th>วิธีใช้</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>พบข้อมูลแนะนำราคาขายเบื้องต้น</td>
+            <td>พบราคาตรงรายการ</td>
+            <td>อ่านราคาจาก <code>Data</code></td>
+          </tr>
+          <tr>
+            <td>พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง</td>
+            <td>ไม่ตรงเป๊ะ มีรายการใกล้เคียง</td>
+            <td><code>Data</code> มักเป็นค่าที่ส่งไป (ราคา 0) — ดู <code>Suggestions</code></td>
+          </tr>
+          <tr>
+            <td>ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น</td>
+            <td>ไม่มีราคาแนะนำ</td>
+            <td><code>Data</code> เป็นค่าที่ส่งไป ราคาเป็น 0</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="s5">
+      <h2>5. HTTP Status</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>เมื่อไหร่?</th>
+            <th>Body</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>200</code></td>
+            <td>ค้นหาเสร็จ (พบ / ไม่พบ / ใกล้เคียง)</td>
+            <td>JSON ตามข้อ 4</td>
+          </tr>
+          <tr>
+            <td><code>400</code></td>
+            <td>รูปแบบข้อมูลไม่ถูกต้อง</td>
+            <td>JSON <code>Success=false</code></td>
+          </tr>
+          <tr>
+            <td><code>401</code></td>
+            <td>ไม่มี token หรือ token ไม่ผ่าน</td>
+            <td>text</td>
+          </tr>
+          <tr>
+            <td><code>404</code></td>
+            <td>ไม่พบข้อมูลไวน์</td>
+            <td>text <code>Wine Data not found</code></td>
+          </tr>
+          <tr>
+            <td><code>500</code></td>
+            <td>ข้อผิดพลาดฝั่ง server</td>
+            <td>JSON <code>Success=false</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <p><code>200</code> ร่วมกับ <code>Success=false</code> เป็นไปได้ เมื่อค้นแล้วไม่มีผลที่ใช้ได้</p>
+    </section>
+
+    <section id="s6">
+      <h2>6. Examples</h2>
+
+      <h3>6.1 ค้นจากชื่อ</h3>
+      <pre><code>POST /cloud/apiv2-Winesearch_Excise HTTP/1.1
+Host: api-taitaxes.excise.go.th
+Authorization: Bearer &lt;access_token&gt;
+Content-Type: application/json
+
+{
+  "ReqNo": "REQ-20260820-0001",
+  "Name": "Penfolds Grange",
+  "CategoryName": "Red",
+  "Vintage": "2018",
+  "BottleSize": "750ml",
+  "Avb": 14.5,
+  "Country": "Australia",
+  "Region": "South Australia"
+}</code></pre>
+      <p>พบราคา</p>
+      <pre><code>{
+  "Success": true,
+  "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้น",
+  "ReqNo": "REQ-20260820-0001",
+  "Query": "Penfolds Grange",
+  "Vintage": "2018",
+  "Size": "750ml",
+  "Data": [
+    {
+      "Name": "Penfolds Grange",
+      "Pic": "https://example.com/wine.jpg",
+      "CategoryName": "Red",
+      "Country": "Australia",
+      "Region": "South Australia",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 14.5,
+      "Vintage": "2018",
+      "RecommendPrice": 28500,
+      "RecommendMaxPrice": 32000,
+      "RecommendMinPrice": 25000
+    }
+  ],
+  "Suggestions": []
+}</code></pre>
+      <p>ใกล้เคียง</p>
+      <pre><code>{
+  "Success": true,
+  "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง",
+  "ReqNo": "REQ-20260820-0001",
+  "Query": "Penfolds Grange",
+  "Vintage": "2018",
+  "Size": "750ml",
+  "Data": [
+    {
+      "Name": "Penfolds Grange",
+      "Pic": "",
+      "CategoryName": "Red",
+      "Country": "Australia",
+      "Region": "South Australia",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 14.5,
+      "Vintage": "2018",
+      "RecommendPrice": 0,
+      "RecommendMaxPrice": 0,
+      "RecommendMinPrice": 0
+    }
+  ],
+  "Suggestions": [
+    {
+      "Name": "Penfolds Grange Bin 95",
+      "Pic": "https://example.com/wine.jpg",
+      "CategoryName": "Red",
+      "Country": "Australia",
+      "Region": "South Australia",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 14.5,
+      "Vintages": [
+        {
+          "Vintage": "2017",
+          "RecommendPrice": 26000,
+          "RecommendMaxPrice": 29000,
+          "RecommendMinPrice": 23000
+        }
+      ]
+    }
+  ]
+}</code></pre>
+
+      <h3>6.2 ค้นจากรูปฉลาก</h3>
+      <p>ส่ง <code>Name</code> เป็น <code>""</code> (string ว่าง) และใส่ <code>Piclabel</code> เป็น base64 ของไฟล์รูป</p>
+      <pre><code>{
+  "ReqNo": "REQ-20260820-0002",
+  "Name": "",
+  "CategoryName": "Red",
+  "Vintage": "2019",
+  "BottleSize": "750ml",
+  "Avb": 13.5,
+  "Country": "France",
+  "Region": "Bordeaux",
+  "Piclabel": "/9j/4AAQSkZJRgABAQAAAQABAAD..."
+}</code></pre>
+      <p>ถ้า <code>Name</code> ไม่ว่าง ระบบจะค้นจากชื่อ และไม่ใช้ <code>Piclabel</code></p>
+
+      <h3>6.3 ไม่ส่ง token</h3>
+      <pre><code>HTTP/1.1 401 Unauthorized
+
+You are not authenticate !</code></pre>
+
+      <h3>6.4 ข้อมูลไม่ถูกต้อง</h3>
+      <p>เช่น ขาด field, ส่ง <code>Avb</code> เป็น <code>"14.5"</code> (string), หรือส่ง field นอก spec</p>
+      <pre><code>{
+  "Success": false,
+  "Message": "Bad Request : กรุณาระบุประเภทข้อมูลให้ถูกต้อง.",
+  "ReqNo": "",
+  "Query": "",
+  "Vintage": "",
+  "Size": "",
+  "Data": [],
+  "Suggestions": []
+}</code></pre>
+
+      <h3>6.5 ไม่พบราคา</h3>
+      <pre><code>{
+  "Success": true,
+  "Message": "ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น",
+  "ReqNo": "REQ-20260820-0003",
+  "Query": "Unknown Wine",
+  "Vintage": "2020",
+  "Size": "750ml",
+  "Data": [
+    {
+      "Name": "Unknown Wine",
+      "Pic": "",
+      "CategoryName": "Red",
+      "Country": "France",
+      "Region": "Burgundy",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 13,
+      "Vintage": "2020",
+      "RecommendPrice": 0,
+      "RecommendMaxPrice": 0,
+      "RecommendMinPrice": 0
+    }
+  ],
+  "Suggestions": []
+}</code></pre>
+    </section>
+
+    <section id="s7">
+      <h2>7. หมายเหตุ</h2>
+      <ol>
+        <li>เรียก URL ตาม environment ในตารางข้อ 1 — UAT และ Production คนละ path คนละ Access Token</li>
+        <li>Access Token บังคับทุก request — ขอจากผู้ดูแลระบบ และ/หรือ ผู้พัฒนาระบบ ออกให้หนึ่ง token ต่อ environment แล้วใช้ต่อเนื่องได้</li>
+        <li>เก็บ token เป็นความลับ ห้ามเปิดเผยในเอกสารหรือโค้ดสาธารณะ</li>
+        <li>ราคาเป็นบาท (THB)</li>
+        <li><code>Avb</code> ต้องเป็น number เช่น <code>14.5</code> ไม่ใช่ <code>"14.5"</code></li>
+        <li><code>CategoryName</code> ส่งตามที่ฝั่งผู้เรียกจัดกลุ่ม ไม่มี master data และไม่มีรายการค่าที่รับเฉพาะ</li>
+        <li><code>Piclabel</code> ละได้ถ้าไม่ค้นจากรูป ถ้าส่งต้องเป็น base64 ของไฟล์รูป (jpeg / png) ไม่ใช่ URL และไม่ใช่ binary</li>
+        <li>ค้นจากรูปเมื่อ <code>Name</code> เป็น <code>""</code> (string ว่าง) และมี <code>Piclabel</code></li>
+        <li>ค้นจากรูปหรือหลายรายการอาจใช้เวลานาน แนะนำ timeout ฝั่งผู้เรียกไม่ต่ำกว่า 10 นาที</li>
+        <li>ขนาด request ไม่เกิน 10 MB</li>
+      </ol>
+    </section>
+  </article>
+</body>
+</html>

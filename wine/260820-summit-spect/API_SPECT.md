@@ -1,0 +1,588 @@
+# ค้นหาไวน์และราคาแนะนำขายเบื้องต้น
+
+Wine Search API Specification · ฉบับภายใน Thinkbit
+
+เอกสารภายในทีม **Thinkbit** — อย่าส่งให้ผู้เรียก API (ผู้เรียกใช้ `CLIENT_SPECT`)
+
+| | |
+|---|---|
+| **Audience** | Thinkbit (dev / ops) |
+| **คู่สัญญา** | กรมสรรพสามิต — ระบบใช้ภายในหน่วยงาน |
+| **ผู้เรียก** | ระบบงานที่ได้รับสิทธิ์เชื่อม API |
+| **Purpose** | ค้นหาไวน์และราคาแนะนำขายเบื้องต้น (THB) จากชื่อ หรือจากรูปฉลาก |
+| **Source** | `excise-wine-nodejs-api` (`Apiv2Controller.Winesearch_Excise`) |
+| **Date** | 2026-08-20 |
+
+---
+
+## 1. ผู้ใช้งาน
+
+API นี้อยู่ในงานของกรมสรรพสามิต ใช้ค้นไวน์และราคาแนะนำ **ภายในโครงข่ายของกรม** ไม่ได้เปิดเป็นบริการสาธารณะ
+
+ผู้ใช้งานฝั่งเรียก API คือ **ระบบงานที่ได้รับสิทธิ์** ไม่ผูกว่าต้องเป็นหน่วยงานใดหน่วยงานหนึ่ง โดยทั่วไปคือระบบที่กรมอนุญาตให้เชื่อมเข้ามาทางระบบงานภายในกรมสรรพสามิต
+
+| บทบาท | คือใคร | ทำอะไร |
+|---|---|---|
+| คู่สัญญา | กรมสรรพสามิต | เจ้าของงาน ใช้งานภายใน |
+| ผู้พัฒนา / ops | Thinkbit | origin, proxy, ออก token, ดูแล environment |
+| ผู้เรียก (caller) | ระบบที่ได้รับ Access Token | `POST` ค้นไวน์ที่ระบบงานภายในกรมสรรพสามิต |
+
+ผู้เรียกโดยทั่วไป:
+
+- ยิงได้เฉพาะระบบงานภายในกรมสรรพสามิต (`api-taitaxes.excise.go.th`) ไม่เรียก cloud / origin โดยตรง
+- มี Access Token คนละ token ต่อ environment
+- ไม่เรียก `apiv2-ExciseToken` เอง — Thinkbit ออก token แล้วส่งให้ระบบนั้นเก็บไปใช้
+- `uid` ใน token ใช้ระบุระบบผู้เรียกใน search log ควร unique ต่อระบบ เช่น `sys-001`
+
+---
+
+## 2. Access — แยก UAT / Production
+
+ผู้เรียกยิงได้เฉพาะ **ระบบงานภายในกรมสรรพสามิต** (`api-taitaxes.excise.go.th`) — ทีม Thinkbit ดูแลระบบงานภายในกรม / cloud / origin
+
+| Environment | Client URL | location ระบบงานภายในกรม | Cloud | Origin | Token |
+|---|---|---|---|---|---|
+| UAT | `POST https://api-taitaxes.excise.go.th/uat/cloud/apiv2-Winesearch_Excise` | **ยังไม่มี — เพิ่มตาม DRAFT** | `winefasttrack-uat.excise.go.th` (`default.conf`) | `excise-wine-nodejs-api-staging.devthinkbit.com` | gen ที่ origin **staging** |
+| Production | `POST https://api-taitaxes.excise.go.th/cloud/apiv2-Winesearch_Excise` | มีใน `api-taitaxes-excise-go-th.conf` | `winefasttrack.excise.go.th` (`prod.conf`) | `excise-wine-nodejs-api.devthinkbit.com` | gen ที่ origin **prod** |
+
+Origin path ทั้งสอง env คือ `/apiv2-Winesearch_Excise`
+
+```mermaid
+flowchart LR
+  C[ผู้เรียก] --> DC["ระบบงานภายในกรมสรรพสามิต<br/>api-taitaxes.excise.go.th"]
+  DC -->|"/uat/cloud/..."| UAT["cloud UAT<br/>winefasttrack-uat"]
+  DC -->|"/cloud/..."| PROD["cloud prod<br/>winefasttrack"]
+  UAT --> STG["API staging"]
+  PROD --> PR["API prod"]
+```
+
+Token / ข้อมูล / `JWT_SECRET` **คนละ env** — token UAT ใช้บน prod ไม่ได้ (ถ้า secret ไม่เหมือนกัน)
+
+| Layer | timeout | body |
+|---|---|---|
+| ระบบงานภายในกรมสรรพสามิต (server-level) | 600s | **10 MB** — เพดานฝั่งผู้เรียกทั้ง UAT และ prod |
+| Cloud location | 600s | 50 MB |
+| Origin | — | `express.json({ limit: '100mb' })` |
+
+`apiv2-ExciseToken` **ไม่มี location** ทั้งระบบงานภายในกรมสรรพสามิต และ cloud — ออก token ที่ origin ตาม env
+
+HTTP ที่ระบบงานภายในกรมสรรพสามิต / cloud ถูก `301` ไป HTTPS (`TLSv1.2` / `TLSv1.3`)
+
+---
+
+## 3. Authentication — **ต้องใช้ access token**
+
+Endpoint ค้นไวน์ **บังคับ** `Authorization: Bearer <access_token>`  
+ไม่มี token / token ไม่ผ่าน → **ไม่ค้นไวน์** ตอบ `401` ทันที
+
+```
+Authorization: Bearer <jwt>
+```
+
+Nginx proxy **ไม่ได้** ใส่ token ให้ — ส่ง header จาก client ต่อไปเท่านั้น
+
+### 3.1 ทีม Thinkbit ออก token ให้ผู้เรียก (`apiv2-ExciseToken`)
+
+ผู้เรียก **ไม่เรียก endpoint นี้เอง** — Thinkbit gen ที่ origin แล้วส่ง JWT ให้ระบบนั้นเก็บไปใช้
+
+| | |
+|---|---|
+| Method | `POST` |
+| Origin UAT | `https://excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-ExciseToken` |
+| Origin prod | `https://excise-wine-nodejs-api.devthinkbit.com/apiv2-ExciseToken` |
+| Auth ของตัว endpoint | **ไม่มี** — ใครถึง origin ได้ก็ mint JWT ได้ |
+| Proxy `/cloud/` และ `/uat/cloud/` | **ไม่มี location** → ผู้เรียกที่ระบบงานภายในกรมสรรพสามิต เรียกออก token ไม่ได้ |
+
+```32:32:src/app/routes/apiv2.ts
+apiv2.post("/apiv2-ExciseToken", Apiv2Controller.ExciseToken);
+```
+
+```mermaid
+flowchart LR
+  Ops[Thinkbit] --> Origin["origin POST /apiv2-ExciseToken"]
+  Origin --> JWT[JWT ไม่มี exp]
+  JWT --> Ops
+  Ops -->|ส่งให้ครั้งเดียว| Caller[ผู้เรียก]
+  Caller -->|Authorization Bearer| Search["POST /cloud/apiv2-Winesearch_Excise"]
+```
+
+**ขั้นตอนออกให้ผู้เรียก 1 ระบบ**
+
+1. กำหนด ident ของระบบผู้เรียก — ใช้ `uid` ใน search log (`Create_by` / `Update_by`) ควร unique ต่อระบบ เช่น `sys-001`
+2. ยิง `POST /apiv2-ExciseToken` ที่ **origin ของ env นั้น** (staging สำหรับ UAT, prod สำหรับ production) — อย่ายิงผ่านระบบงานภายในกรมสรรพสามิต / cloud
+3. ได้ `data.token` แล้วส่งให้ผู้เรียกทางช่องทางลับ (อย่า commit / อย่าใส่ใน `CLIENT_SPECT`)
+4. ผู้เรียกใส่ `Authorization: Bearer <data.token>` ทุกครั้งที่ค้นไวน์ — **ใช้ได้ยาว ไม่มี `expiresIn`**
+
+**Request body** (`additionalProperties: false`, ทุก field เป็น string และ required)
+
+| Field | ใช้ทำอะไร? |
+|---|---|
+| `token` | ฝังใน JWT payload ชื่อ `token` — API ค้นไวน์ไม่ได้ใช้ต่อ |
+| `uid` | ฝังใน JWT → ตอนค้นไวน์เขียนลง `tbExciseSearchLog.Create_by` / `Update_by` |
+| `name` | ฝังใน JWT payload ชื่อ `name` |
+
+```json
+{
+  "token": "sys-001",
+  "uid": "sys-001",
+  "name": "Caller System"
+}
+```
+
+**JWT payload ที่ถูก sign** (`jwt.sign` ด้วย `JWT_SECRET`, **ไม่ใส่ `expiresIn`**)
+
+```json
+{
+  "token": "sys-001",
+  "uid": "sys-001",
+  "name": "Caller System",
+  "time": "<Date ตอน gen>",
+  "url": "<process.env.URL>",
+  "iat": 0
+}
+```
+
+โค้ดที่เคยหมดอายุถูก comment ไว้แล้ว:
+
+```2583:2587:src/app/controller/Apiv2Controller.ts
+          // let token = await jwt.sign(token_model, process.env.JWT_SECRET as string, { expiresIn: process.env.EXPIRE_TIME })
+          let token = sign(token_model, process.env.JWT_SECRET as string);
+```
+
+**Response สำเร็จ**
+
+```json
+{
+  "code": 200,
+  "data": { "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+  "message": "Token Genarated",
+  "status": true
+}
+```
+
+| HTTP | เมื่อไหร่? |
+|---|---|
+| `200` | sign สำเร็จ — ใช้ `data.token` เป็น Bearer |
+| `400` | body ไม่ครบ / type ผิด / field นอก spec |
+| `500` | init Firebase หรือต่อ DB ไม่ได้ (เปิด pool แต่ไม่ได้ validate uid กับตาราง) |
+
+**อายุและ revoke**
+
+| เรื่อง | พฤติกรรมจริง |
+|---|---|
+| หมดอายุ | **ไม่มี** — gen ครั้งเดียวใช้ได้ยาว |
+| ตรวจตอนค้นไวน์ | `jwt.verify(token, JWT_SECRET)` อย่างเดียว ไม่เช็ค DB / ไม่เช็ค `exp` |
+| revoke รายผู้เรียก | **ไม่มี revoke list** — ออก token ใหม่ให้ไม่ได้ทำให้ของเก่าใช้ไม่ได้ |
+| revoke ทั้งระบบ | rotate `JWT_SECRET` → JWT เก่าทั้งหมด `401 Invalid Token` แล้วต้อง gen ใหม่ให้ทุกคน |
+| อย่าเปิด `apiv2-ExciseToken` ออก `/cloud/` | endpoint นี้ไม่มี auth ของตัวเอง |
+
+### 3.2 Proof — ค้นไวน์บังคับ Bearer (`excise-wine-nodejs-api`)
+
+1. Route ชี้ไปที่ handler `wse` โดยตรง
+
+```31:31:src/app/routes/apiv2.ts
+apiv2.post("/apiv2-Winesearch_Excise", Apiv2Controller.Winesearch_Excise);
+```
+
+```2487:2487:src/app/controller/Apiv2Controller.ts
+  static Winesearch_Excise: RequestHandler = wse;
+```
+
+2. Handler ดึง token **ก่อน** validate body / ค้นข้อมูล  
+   ไม่มี `Authorization` → `401`  
+   verify ไม่ผ่าน → `401`
+
+```24:44:src/app/controller/wse.ts
+const resolveToken = (request: Request, response: Response<any>) => {
+  let authHeader = request.headers["authorization"] as string;
+  if (!authHeader) {
+    response.status(401).send("You are not authenticate !");
+    return;
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.JWT_SECRET as string, (err) => {
+    if (err) {
+      response.status(401).send("Invalid Token");
+      throw new Error("Invalid Token");
+    }
+  });
+  // ...
+  return jwt.decode(token) as TokenData | null;
+};
+```
+
+3. Gate ของทั้ง endpoint: มี decoded token เท่านั้นถึงจะทำงานต่อ ไม่มี → `401`
+
+```586:591:src/app/controller/wse.ts
+const wse: RequestHandler = async (request, response) => {
+  try {
+    let decodedToken = resolveToken(request, response);
+    if (decodedToken) {
+      // ... search ...
+```
+
+```1117:1120:src/app/controller/wse.ts
+    // ถ้าไม่มี token ให้ทำการส่ง status 401 Unauthorize
+    else {
+      response.status(401).send("You are Not authenticate !!!");
+    }
+```
+
+### 3.3 ผลลัพธ์ตาม token (ตอนค้นไวน์)
+
+| กรณี | HTTP | Body |
+|---|---|---|
+| ไม่มี header `Authorization` | `401` | `You are not authenticate !` (text) |
+| Token ไม่ผ่าน `jwt.verify` | `401` | `Invalid Token` (text) |
+| Decode ได้ `null` | `401` | `You are Not authenticate !!!` (text) |
+| Token ถูกต้อง | ไปขั้นถัดไป (validate body → search) | JSON |
+
+### ตัวอย่าง — ไม่ส่ง token
+
+```http
+POST /cloud/apiv2-Winesearch_Excise HTTP/1.1
+Host: api-taitaxes.excise.go.th
+Content-Type: application/json
+
+{ "...body..." }
+```
+
+```http
+HTTP/1.1 401 Unauthorized
+
+You are not authenticate !
+```
+
+---
+
+## 4. Request
+
+| | |
+|---|---|
+| Method | `POST` |
+| Content-Type | `application/json` |
+| additionalProperties | `false` — field นอก spec จะถูก reject |
+
+### Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `ReqNo` | string | yes | เลขที่คำขอ ของ client ใช้จับคู่ request/response |
+| `Name` | string | yes | ชื่อไวน์ — ถ้าเป็น `""` (string ว่าง) และมี `Piclabel` จะค้นจากรูปฉลาก |
+| `CategoryName` | string | yes | กลุ่ม/ประเภทตามที่ผู้เรียกจัด — ไม่มี master / accept list ไม่ได้ใช้เป็นเงื่อนไขค้น แค่ log + echo ตอนไม่เจอ |
+| `Vintage` | string | yes | ปี เช่น `"2018"` หรือ `"NV"` |
+| `BottleSize` | string | yes | ขนาดขวด — ดู mapping ด้านล่าง |
+| `Avb` | number | yes | แอลกอฮอล์ (%) ต้องเป็น number ไม่ใช่ string |
+| `Country` | string | yes | ประเทศ |
+| `Region` | string | yes | ภูมิภาค |
+| `Piclabel` | string | no | รูปฉลากเป็น base64 ของไฟล์รูป (jpeg / png) — ใช้เมื่อ `Name` เป็น `""` (string ว่าง) |
+
+`Piclabel` schema เช็คแค่ว่าเป็น string ไม่ได้ตรวจว่าเป็น base64 ที่ถูกต้อง ส่งได้ raw base64 หรือ data URI (`data:image/jpeg;base64,...` / `data:image/png;base64,...`) ฝั่งค้นรูปตัด prefix ให้ ห้ามส่ง URL หรือ binary
+
+### BottleSize mapping (ฝั่ง API)
+
+| ค่าที่ส่ง | BottleCode | ค่าที่ใช้ค้นราคา |
+|---|---|---|
+| `375ml` / `0.375` | `h` | Half Bottle (375ml) |
+| `750ml` / `0.750` | `B` | Bottle (750ml) |
+| `1500ml` / `1.500` | `m` | Magnum (1.5L) |
+| `3000ml` / `3.000` | `dm` | Double Magnums (3L) |
+| อื่นๆ | `O` | ใช้ค่าที่ส่งมาตรงๆ |
+
+---
+
+## 5. Response
+
+`Content-Type: application/json` (ยกเว้น 401 / 404 ที่เป็น text)
+
+```json
+{
+  "Success": true,
+  "Message": "",
+  "ReqNo": "",
+  "Query": "",
+  "Vintage": "",
+  "Size": "",
+  "Data": [],
+  "Suggestions": []
+}
+```
+
+### Envelope
+
+| Field | Type | Description |
+|---|---|---|
+| `Success` | boolean | ผลค้นหาโดยรวม |
+| `Message` | string | ข้อความสถานะ (ภาษาไทย) |
+| `ReqNo` | string | ค่าเดียวกับ request |
+| `Query` | string | ชื่อที่ใช้ค้น (`Name`) |
+| `Vintage` | string | ปีจาก request |
+| `Size` | string | `BottleSize` จาก request (ค่าดิบที่ส่งมา) |
+| `Data` | `WinesearchData[]` | ผลหลัก |
+| `Suggestions` | `WinesuggestionsData[]` | รายการใกล้เคียง |
+
+### `Data[]` — `WinesearchData`
+
+| Field | Type |
+|---|---|
+| `Name` | string |
+| `Pic` | string (URL รูปขวด/ฉลาก, ว่างได้) |
+| `CategoryName` | string |
+| `Country` | string |
+| `Region` | string |
+| `BottleSize` | string |
+| `Avb` | number |
+| `Vintage` | string |
+| `RecommendPrice` | number |
+| `RecommendMaxPrice` | number |
+| `RecommendMinPrice` | number |
+
+### `Suggestions[]` — `WinesuggestionsData`
+
+| Field | Type |
+|---|---|
+| `Name` | string |
+| `Pic` | string |
+| `CategoryName` | string |
+| `Country` | string |
+| `Region` | string |
+| `BottleSize` | string |
+| `Avb` | number |
+| `Vintages` | `vintageandprice[]` |
+
+`Vintages[]`
+
+| Field | Type |
+|---|---|
+| `Vintage` | string |
+| `RecommendPrice` | number |
+| `RecommendMaxPrice` | number |
+| `RecommendMinPrice` | number |
+
+### Message ที่ client ควร handle
+
+| Message | ความหมาย | Data / Suggestions |
+|---|---|---|
+| `พบข้อมูลแนะนำราคาขายเบื้องต้น` | พบราคาตรงรายการ | `Data` มีราคา, `Suggestions` ว่างหรือไม่ใช้ |
+| `พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง` | ไม่ exact — มีรายการใกล้เคียง | `Data` มัก echo ค่าจาก request (ราคา 0), `Suggestions` มีรายการ |
+| `ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น` | ไม่มีราคาแนะนำ (รวมกรณีราคา = 0) | `Data` echo ค่าจาก request, ราคาเป็น 0 |
+
+---
+
+## 6. HTTP Status
+
+| Status | เมื่อไหร่? | Body |
+|---|---|---|
+| `200` | ค้นหาเสร็จ (ทั้งพบ / ไม่พบ / ใกล้เคียง) | JSON envelope |
+| `400` | body ไม่ผ่าน schema | JSON `Success=false`, `Message="Bad Request : กรุณาระบุประเภทข้อมูลให้ถูกต้อง."` |
+| `401` | ไม่มี / token ไม่ผ่าน | text |
+| `404` | exception ระหว่างค้นข้อมูลไวน์ | text `Wine Data not found` |
+| `500` | init / DB / search error | JSON `Success=false`, `Message` ขึ้นต้น `Internal Server Error` |
+
+`200` + `Success=false` เป็นไปได้ เมื่อค้นแล้วไม่มีผลที่ใช้ได้
+
+---
+
+## 7. Examples
+
+### 7.1 ค้นจากชื่อ
+
+```http
+POST /cloud/apiv2-Winesearch_Excise HTTP/1.1
+Host: api-taitaxes.excise.go.th
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "ReqNo": "SMT-20260820-0001",
+  "Name": "Penfolds Grange",
+  "CategoryName": "Red",
+  "Vintage": "2018",
+  "BottleSize": "750ml",
+  "Avb": 14.5,
+  "Country": "Australia",
+  "Region": "South Australia"
+}
+```
+
+พบราคา
+
+```json
+{
+  "Success": true,
+  "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้น",
+  "ReqNo": "SMT-20260820-0001",
+  "Query": "Penfolds Grange",
+  "Vintage": "2018",
+  "Size": "750ml",
+  "Data": [
+    {
+      "Name": "Penfolds Grange",
+      "Pic": "https://storage.example/wine/penfolds-grange.jpg",
+      "CategoryName": "Red",
+      "Country": "Australia",
+      "Region": "South Australia",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 14.5,
+      "Vintage": "2018",
+      "RecommendPrice": 28500,
+      "RecommendMaxPrice": 32000,
+      "RecommendMinPrice": 25000
+    }
+  ],
+  "Suggestions": []
+}
+```
+
+ใกล้เคียง
+
+```json
+{
+  "Success": true,
+  "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง",
+  "ReqNo": "SMT-20260820-0001",
+  "Query": "Penfolds Grange",
+  "Vintage": "2018",
+  "Size": "750ml",
+  "Data": [
+    {
+      "Name": "Penfolds Grange",
+      "Pic": "",
+      "CategoryName": "Red",
+      "Country": "Australia",
+      "Region": "South Australia",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 14.5,
+      "Vintage": "2018",
+      "RecommendPrice": 0,
+      "RecommendMaxPrice": 0,
+      "RecommendMinPrice": 0
+    }
+  ],
+  "Suggestions": [
+    {
+      "Name": "Penfolds Grange Bin 95",
+      "Pic": "https://storage.example/wine/penfolds-grange-bin95.jpg",
+      "CategoryName": "Red",
+      "Country": "Australia",
+      "Region": "South Australia",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 14.5,
+      "Vintages": [
+        {
+          "Vintage": "2017",
+          "RecommendPrice": 26000,
+          "RecommendMaxPrice": 29000,
+          "RecommendMinPrice": 23000
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 7.2 ค้นจากรูปฉลาก
+
+ส่ง `Name` เป็น `""` (string ว่าง) และใส่ `Piclabel` เป็น base64 ของไฟล์รูป
+
+```json
+{
+  "ReqNo": "SMT-20260820-0002",
+  "Name": "",
+  "CategoryName": "Red",
+  "Vintage": "2019",
+  "BottleSize": "750ml",
+  "Avb": 13.5,
+  "Country": "France",
+  "Region": "Bordeaux",
+  "Piclabel": "/9j/4AAQSkZJRgABAQAAAQABAAD..."
+}
+```
+
+ถ้า `Name` ไม่ว่าง `Piclabel` จะไม่ถูกใช้ค้น
+
+### 7.3 Bad Request
+
+```json
+{
+  "Success": false,
+  "Message": "Bad Request : กรุณาระบุประเภทข้อมูลให้ถูกต้อง.",
+  "ReqNo": "",
+  "Query": "",
+  "Vintage": "",
+  "Size": "",
+  "Data": [],
+  "Suggestions": []
+}
+```
+
+สาเหตุที่พบบ่อย
+
+- ขาด field ที่ required
+- `Avb` เป็น string เช่น `"14.5"` แทน number
+- ส่ง field นอก spec
+
+### 7.4 ไม่พบราคา
+
+```json
+{
+  "Success": true,
+  "Message": "ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น",
+  "ReqNo": "SMT-20260820-0003",
+  "Query": "Unknown Wine",
+  "Vintage": "2020",
+  "Size": "750ml",
+  "Data": [
+    {
+      "Name": "Unknown Wine",
+      "Pic": "",
+      "CategoryName": "Red",
+      "Country": "France",
+      "Region": "Burgundy",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 13,
+      "Vintage": "2020",
+      "RecommendPrice": 0,
+      "RecommendMaxPrice": 0,
+      "RecommendMinPrice": 0
+    }
+  ],
+  "Suggestions": []
+}
+```
+
+---
+
+## 8. Client notes
+
+1. **Access token บังคับ** — ไม่มี `Authorization: Bearer <jwt>` แล้วได้ `401` ทันที ไม่ค้นไวน์
+2. **Entry point** — ผู้เรียกยิงที่ระบบงานภายในกรมสรรพสามิต (`api-taitaxes.excise.go.th`) เท่านั้น  
+   Thinkbit อย่ายิง origin ให้ผู้เรียกใช้โดยตรง  
+   UAT = `/uat/cloud/apiv2-Winesearch_Excise` (ต้องเพิ่ม location) · prod = `/cloud/apiv2-Winesearch_Excise`
+3. **ราคาเป็น THB** — API ค้นราคาด้วย `Currencycode=THB`
+4. **`Avb` ต้องเป็น number** — schema ไม่รับ string
+5. **`Piclabel` เป็น optional** — omit ได้ถ้าไม่ค้นจากรูป ถ้าส่งต้องเป็น base64 ของไฟล์รูป (jpeg / png) raw หรือ data URI ก็ได้ ห้าม URL / binary schema ไม่ validate ว่า base64 ถูกต้อง
+6. **ค้นจากรูป** เกิดเมื่อ `Name === ""` และ `Piclabel` ไม่ว่าง หลัง trim — ตัด prefix `data:image/jpeg;base64,` / `data:image/png;base64,` แล้วส่งเข้าค้นรูป
+7. **Timeout ฝั่ง proxy** สูงสุด 600 วินาที — ค้นจากรูป/หลายรายการอาจช้า
+8. **Log** — ทุก request ที่ผ่าน validate จะถูก insert ลง `tbExciseSearchLog` (`Reqno`, request, response, IP, token uid)
+9. **Body size** — เพดานฝั่งผู้เรียกคือ **10 MB ที่ระบบงานภายในกรมสรรพสามิต** (`client_max_body_size 10m` ระดับ server) แม้ cloud จะรับ 50m และ origin รับ 100mb
+
+---
+
+## 9. Proxy (อ้างอิง DRAFT)
+
+| Layer | ไฟล์ |
+|---|---|
+| ระบบงานภายในกรมสรรพสามิต | `excise-wine-proxy/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf` |
+| Cloud UAT | `excise-wine-proxy/aws/uat/nginx/default.conf` |
+| Cloud prod | `excise-wine-proxy/aws/uat/nginx/prod.conf` |
+
+**Production (live)**
+
+`api-taitaxes` `/cloud/apiv2-Winesearch_Excise` → `winefasttrack.excise.go.th` → `excise-wine-nodejs-api.devthinkbit.com/apiv2-Winesearch_Excise`
+
+**UAT (cloud + origin มีแล้ว, ระบบงานภายในกรมสรรพสามิต ต้องเพิ่ม location)**
+
+`api-taitaxes` `/uat/cloud/apiv2-Winesearch_Excise` → `winefasttrack-uat.excise.go.th/cloud/apiv2-Winesearch_Excise` → `excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-Winesearch_Excise`
+
+snippet ที่ต้องเพิ่มอยู่ที่ `DRAFT.md` §3

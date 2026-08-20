@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ค้นหาไวน์และราคาแนะนำขายเบื้องต้น — ฉบับภายใน</title>
+  <style>
+@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap");
+
+:root {
+  --font: "TH Sarabun New", "Sarabun", "Angsana New", "Tahoma", sans-serif;
+  --ink: #010025;
+  --mute: #3d3d55;
+  --rule: #010025;
+  --rule-soft: #b8b8c8;
+  --fill: #ecf6f9;
+  --row: #f6fafc;
+  --warn: #f6eef3;
+  --paper: #ffffff;
+  --desk: #d9e4ee;
+  --navy: #010025;
+  --section: #3363c2;
+  --note: #f5f8fb;
+  --link: #3363c2;
+  --cyan: #62b2ce;
+  --purple: #5f2992;
+  --magenta: #a3286b;
+  --fs-cover: 22pt;
+  --fs-h1: 18pt;
+  --fs-h2: 16pt;
+  --fs-body: 14pt;
+  --fs-small: 11pt;
+  --lh: 1.45;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 18mm 18mm 20mm 22mm;
+  @top-center {
+    content: "ค้นหาไวน์และราคาแนะนำขายเบื้องต้น · ฉบับภายใน";
+    font-family: "TH Sarabun New", Sarabun, sans-serif;
+    font-size: 10pt;
+    color: var(--mute);
+  }
+  @bottom-left { content: "WINE-SEARCH-EXCISE-API-SPECT"; font-size: 10pt; }
+  @bottom-right { content: "หน้า " counter(page); font-size: 10pt; }
+}
+@page :first { @top-center { content: none; } }
+
+* { box-sizing: border-box; }
+html { font-size: 14pt; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--desk);
+  line-height: var(--lh);
+}
+a {
+  color: var(--link);
+  text-decoration: underline;
+}
+.document {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 16px auto 48px;
+  padding: 18mm 18mm 20mm 22mm;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px #bbb, 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+h2, h3 { page-break-after: avoid; }
+.doc-head {
+  text-align: center;
+  border-bottom: 3px double var(--section);
+  padding-bottom: 12pt;
+  margin-bottom: 16pt;
+}
+.org {
+  margin: 0;
+  font-size: 14pt;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--navy);
+}
+.doc-type { margin: 2pt 0 8pt; font-size: var(--fs-small); }
+.doc-title {
+  margin: 0 0 4pt;
+  font-size: var(--fs-cover);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.doc-sub { margin: 0 0 12pt; font-size: 14pt; color: var(--mute); }
+.meta {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--fs-small);
+}
+.meta th { width: 18%; background: var(--fill); font-weight: 700; }
+.meta th, .meta td { border: 0.6pt solid var(--rule); padding: 4pt 8pt; }
+h2 {
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  margin: 18pt 0 8pt;
+  padding-bottom: 3pt;
+  border-bottom: 0.75pt solid var(--section);
+  break-after: avoid;
+  break-inside: avoid;
+}
+section > h2 {
+  break-before: page;
+  page-break-before: always;
+}
+h3 {
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  margin: 14pt 0 6pt;
+  break-after: avoid;
+  break-inside: avoid;
+}
+p {
+  margin: 0 0 8pt;
+  font-size: var(--fs-body);
+  text-align: justify;
+  orphans: 3;
+  widows: 3;
+}
+ul, ol { margin: 0 0 10pt; padding-left: 22pt; }
+li { margin-bottom: 3pt; }
+
+ul { list-style: none; }
+ul > li { position: relative; }
+ul > li::before {
+  content: "■";
+  position: absolute;
+  left: -16pt;
+  top: 0;
+  height: calc(1em * var(--lh));
+  display: flex;
+  align-items: center;
+  font-size: 0.85em;
+  line-height: 1;
+  color: var(--section);
+}
+.toc { margin: 0 0 18pt; page-break-after: always; }
+.toc ol { padding-left: 22pt; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12pt;
+  margin: 0 0 12pt;
+  break-inside: auto;
+}
+th, td {
+  border: 0.6pt solid var(--rule);
+  padding: 5pt 8pt;
+  vertical-align: top;
+  text-align: left;
+}
+thead th {
+  background: var(--fill);
+  font-weight: 700;
+  text-align: center;
+}
+tbody tr:nth-child(even) { background: var(--row); }
+thead { display: table-header-group; }
+tr { page-break-inside: avoid; }
+.col-name { width: 22%; }
+.col-type { width: 14%; }
+.col-req { width: 12%; }
+.compact { font-size: 10pt; }
+.compact th, .compact td { padding: 4pt 5pt; }
+.url { font-size: 10pt; word-break: break-all; }
+.callout {
+  border: 0.6pt solid var(--rule);
+  border-left: 4pt solid var(--navy);
+  padding: 8pt 10pt;
+  margin: 0 0 12pt;
+  break-inside: avoid;
+  background: var(--row);
+}
+.callout.warn {
+  background: var(--warn);
+  border-left-color: var(--magenta);
+}
+.callout .label {
+  margin: 0 0 4pt;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+code {
+  font-family: inherit;
+  font-size: inherit;
+}
+p code, td code, li code, th code {
+  font-weight: 700;
+  border: 0;
+  padding: 0;
+  background: none;
+}
+pre {
+  border: 0.6pt solid var(--rule);
+  padding: 10pt 12pt;
+  margin: 0 0 12pt;
+  background: #fff;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 11pt;
+  line-height: 1.35;
+}
+pre code {
+  font-family: "Sarabun", "Courier New", monospace;
+  font-size: 11pt;
+  font-weight: 400;
+  border: 0;
+  padding: 0;
+}
+.caption { margin: 0 0 4pt; font-size: var(--fs-small); color: var(--mute); }
+.toolbar { text-align: right; margin: 0 0 12pt; }
+.toolbar button {
+  font: 14pt var(--font);
+  padding: 4pt 12pt;
+  border: 0.6pt solid var(--rule);
+  background: #fff;
+  cursor: pointer;
+}
+@media print {
+  html, body { background: #fff !important; color: var(--ink); }
+  .document {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border: 0;
+  }
+  a { color: var(--link); text-decoration: underline; }
+  .no-print { display: none !important; }
+}
+  </style>
+</head>
+<body>
+  <article class="document">
+    <p class="no-print toolbar">
+      <button type="button" onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button>
+    </p>
+
+    <header class="doc-head">
+      <p class="org">Thinkbit</p>
+      <p class="doc-type">เอกสารคู่มือ · ฉบับภายใน</p>
+      <h1 class="doc-title">ค้นหาไวน์และราคาแนะนำขายเบื้องต้น</h1>
+      <p class="doc-sub">Wine Search API Specification</p>
+      <table class="meta">
+        <tr>
+          <th>เลขที่เอกสาร</th><td>WINE-SEARCH-EXCISE-API-SPECT</td>
+          <th>วันที่</th><td>20 สิงหาคม 2569</td>
+        </tr>
+        <tr>
+          <th>รุ่น</th><td>1.0</td>
+          <th>ชั้นความลับ</th><td>Thinkbit internal · อย่าส่งให้ผู้เรียก (ใช้ CLIENT_SPECT)</td>
+        </tr>
+      </table>
+    </header>
+
+    <nav class="toc">
+      <h2>สารบัญ</h2>
+      <ol>
+        <li><a href="#s-users">ผู้ใช้งาน</a></li>
+        <li><a href="#s1">Access — แยก UAT / Production</a></li>
+        <li><a href="#s2">Authentication</a></li>
+        <li><a href="#s3">Request</a></li>
+        <li><a href="#s4">Response</a></li>
+        <li><a href="#s5">HTTP Status</a></li>
+        <li><a href="#s6">Examples</a></li>
+        <li><a href="#s7">Client notes</a></li>
+        <li><a href="#s8">Proxy</a></li>
+      </ol>
+    </nav>
+
+    <section id="s-users">
+      <h2>1. ผู้ใช้งาน</h2>
+      <p>API นี้อยู่ในงานของกรมสรรพสามิต ใช้ค้นไวน์และราคาแนะนำ <strong>ภายในโครงข่ายของกรม</strong> ไม่ได้เปิดเป็นบริการสาธารณะ</p>
+      <p>ผู้ใช้งานฝั่งเรียก API คือ <strong>ระบบงานที่ได้รับสิทธิ์</strong> ไม่ผูกว่าต้องเป็นหน่วยงานใดหน่วยงานหนึ่ง โดยทั่วไปคือระบบที่กรมอนุญาตให้เชื่อมเข้ามาทางระบบงานภายในกรมสรรพสามิต</p>
+      <table>
+        <thead>
+          <tr>
+            <th>บทบาท</th>
+            <th>คือใคร</th>
+            <th>ทำอะไร</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>คู่สัญญา</td>
+            <td>กรมสรรพสามิต</td>
+            <td>เจ้าของงาน ใช้งานภายใน</td>
+          </tr>
+          <tr>
+            <td>ผู้พัฒนา / ops</td>
+            <td>Thinkbit</td>
+            <td>origin, proxy, ออก token, ดูแล environment</td>
+          </tr>
+          <tr>
+            <td>ผู้เรียก (caller)</td>
+            <td>ระบบที่ได้รับ Access Token</td>
+            <td><code>POST</code> ค้นไวน์ที่ระบบงานภายในกรมสรรพสามิต</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>ผู้เรียกโดยทั่วไป:</p>
+      <ul>
+        <li>ยิงได้เฉพาะระบบงานภายในกรมสรรพสามิต (<a href="https://api-taitaxes.excise.go.th">api-taitaxes.excise.go.th</a>) ไม่เรียก cloud / origin โดยตรง</li>
+        <li>มี Access Token คนละ token ต่อ environment</li>
+        <li>ไม่เรียก <code>apiv2-ExciseToken</code> เอง — Thinkbit ออก token แล้วส่งให้ระบบนั้นเก็บไปใช้</li>
+        <li><code>uid</code> ใน token ใช้ระบุระบบผู้เรียกใน search log ควร unique ต่อระบบ เช่น <code>sys-001</code></li>
+      </ul>
+    </section>
+
+    <section id="s1">
+      <h2>2. Access — แยก UAT / Production</h2>
+      <p>ผู้เรียกยิงได้เฉพาะ <strong>ระบบงานภายในกรมสรรพสามิต</strong> (<a href="https://api-taitaxes.excise.go.th">api-taitaxes.excise.go.th</a>) — ทีม Thinkbit ดูแลระบบงานภายในกรม / cloud / origin</p>
+      <table class="compact">
+        <thead>
+          <tr>
+            <th>Environment</th>
+            <th>Client URL</th>
+            <th>location ระบบงานภายในกรม</th>
+            <th>Cloud</th>
+            <th>Origin</th>
+            <th>Token</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>UAT</td>
+            <td class="url"><strong>POST</strong> <a href="https://api-taitaxes.excise.go.th/uat/cloud/apiv2-Winesearch_Excise">https://api-taitaxes.excise.go.th/uat/cloud/apiv2-Winesearch_Excise</a></td>
+            <td><strong>ยังไม่มี — เพิ่มตาม DRAFT</strong></td>
+            <td class="url"><a href="https://winefasttrack-uat.excise.go.th">winefasttrack-uat.excise.go.th</a> (<code>default.conf</code>)</td>
+            <td class="url"><a href="https://excise-wine-nodejs-api-staging.devthinkbit.com">excise-wine-nodejs-api-staging.devthinkbit.com</a></td>
+            <td>gen ที่ origin <strong>staging</strong></td>
+          </tr>
+          <tr>
+            <td>Production</td>
+            <td class="url"><strong>POST</strong> <a href="https://api-taitaxes.excise.go.th/cloud/apiv2-Winesearch_Excise">https://api-taitaxes.excise.go.th/cloud/apiv2-Winesearch_Excise</a></td>
+            <td>มีใน <code>api-taitaxes-excise-go-th.conf</code></td>
+            <td class="url"><a href="https://winefasttrack.excise.go.th">winefasttrack.excise.go.th</a> (<code>prod.conf</code>)</td>
+            <td class="url"><a href="https://excise-wine-nodejs-api.devthinkbit.com">excise-wine-nodejs-api.devthinkbit.com</a></td>
+            <td>gen ที่ origin <strong>prod</strong></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Origin path ทั้งสอง env คือ <code>/apiv2-Winesearch_Excise</code></p>
+      <p class="caption">path</p>
+      <pre><code>ผู้เรียก
+  → api-taitaxes.excise.go.th
+      ├─ /uat/cloud/...  → winefasttrack-uat → API staging
+      └─ /cloud/...      → winefasttrack     → API prod</code></pre>
+      <aside class="callout warn">
+        <p class="label">ข้อควรระวัง</p>
+        <p>Token / ข้อมูล / <code>JWT_SECRET</code> คนละ env — token UAT ใช้บน prod ไม่ได้ (ถ้า secret ไม่เหมือนกัน)</p>
+      </aside>
+      <table>
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>timeout</th>
+            <th>body</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ระบบงานภายในกรมสรรพสามิต (server-level)</td>
+            <td>600s</td>
+            <td><strong>10 MB</strong> — เพดานฝั่งผู้เรียกทั้ง UAT และ prod</td>
+          </tr>
+          <tr>
+            <td>Cloud location</td>
+            <td>600s</td>
+            <td>50 MB</td>
+          </tr>
+          <tr>
+            <td>Origin</td>
+            <td>—</td>
+            <td><code>express.json({ limit: '100mb' })</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <p><code>apiv2-ExciseToken</code> <strong>ไม่มี location</strong> ทั้งระบบงานภายในกรมสรรพสามิต และ cloud — ออก token ที่ origin ตาม env</p>
+      <p>HTTP ที่ระบบงานภายในกรมสรรพสามิต / cloud ถูก <code>301</code> ไป HTTPS (<code>TLSv1.2</code> / <code>TLSv1.3</code>)</p>
+    </section>
+
+    <section id="s2">
+      <h2>3. Authentication — ต้องใช้ access token</h2>
+      <p>Endpoint ค้นไวน์ <strong>บังคับ</strong> <code>Authorization: Bearer &lt;access_token&gt;</code> ไม่มี token / token ไม่ผ่าน → <strong>ไม่ค้นไวน์</strong> ตอบ <code>401</code> ทันที</p>
+      <pre><code>Authorization: Bearer &lt;jwt&gt;</code></pre>
+      <p>Nginx proxy <strong>ไม่ได้</strong> ใส่ token ให้ — ส่ง header จาก client ต่อไปเท่านั้น</p>
+
+      <h3>3.1 ทีม Thinkbit ออก token ให้ผู้เรียก (<code>apiv2-ExciseToken</code>)</h3>
+      <p>ผู้เรียก <strong>ไม่เรียก endpoint นี้เอง</strong> — Thinkbit gen ที่ origin แล้วส่ง JWT ให้ระบบนั้นเก็บไปใช้</p>
+      <table>
+        <thead>
+          <tr>
+            <th>รายการ</th>
+            <th>ค่า</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Method</td><td><code>POST</code></td></tr>
+          <tr><td>Origin UAT</td><td class="url"><a href="https://excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-ExciseToken">https://excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-ExciseToken</a></td></tr>
+          <tr><td>Origin prod</td><td class="url"><a href="https://excise-wine-nodejs-api.devthinkbit.com/apiv2-ExciseToken">https://excise-wine-nodejs-api.devthinkbit.com/apiv2-ExciseToken</a></td></tr>
+          <tr><td>Auth ของตัว endpoint</td><td><strong>ไม่มี</strong> — ใครถึง origin ได้ก็ mint JWT ได้</td></tr>
+          <tr><td>Proxy <code>/cloud/</code> และ <code>/uat/cloud/</code></td><td><strong>ไม่มี location</strong> → ผู้เรียกที่ระบบงานภายในกรมสรรพสามิต เรียกออก token ไม่ได้</td></tr>
+        </tbody>
+      </table>
+      <p class="caption"><code>src/app/routes/apiv2.ts</code></p>
+      <pre><code>apiv2.post("/apiv2-ExciseToken", Apiv2Controller.ExciseToken);</code></pre>
+      <p class="caption">ขั้นตอน</p>
+      <pre><code>Thinkbit → origin POST /apiv2-ExciseToken → JWT (ไม่มี exp)
+  → ส่งให้ผู้เรียกครั้งเดียว
+  → ผู้เรียก Authorization Bearer → POST ค้นไวน์</code></pre>
+      <p><strong>ขั้นตอนออกให้ผู้เรียก 1 ระบบ</strong></p>
+      <ol>
+        <li>กำหนด ident ของระบบผู้เรียก — ใช้ <code>uid</code> ใน search log (<code>Create_by</code> / <code>Update_by</code>) ควร unique ต่อระบบ เช่น <code>sys-001</code></li>
+        <li>ยิง <code>POST /apiv2-ExciseToken</code> ที่ <strong>origin ของ env นั้น</strong> (staging สำหรับ UAT, prod สำหรับ production) — อย่ายิงผ่านระบบงานภายในกรมสรรพสามิต / cloud</li>
+        <li>ได้ <code>data.token</code> แล้วส่งให้ผู้เรียกทางช่องทางลับ (อย่า commit / อย่าใส่ใน <code>CLIENT_SPECT</code>)</li>
+        <li>ผู้เรียกใส่ <code>Authorization: Bearer &lt;data.token&gt;</code> ทุกครั้งที่ค้นไวน์ — <strong>ใช้ได้ยาว ไม่มี <code>expiresIn</code></strong></li>
+      </ol>
+      <p><strong>Request body</strong> (<code>additionalProperties: false</code>, ทุก field เป็น string และ required)</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>ใช้ทำอะไร?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>token</code></td><td>ฝังใน JWT payload ชื่อ <code>token</code> — API ค้นไวน์ไม่ได้ใช้ต่อ</td></tr>
+          <tr><td><code>uid</code></td><td>ฝังใน JWT → ตอนค้นไวน์เขียนลง <code>tbExciseSearchLog.Create_by</code> / <code>Update_by</code></td></tr>
+          <tr><td><code>name</code></td><td>ฝังใน JWT payload ชื่อ <code>name</code></td></tr>
+        </tbody>
+      </table>
+      <pre><code>{
+  "token": "sys-001",
+  "uid": "sys-001",
+  "name": "Caller System"
+}</code></pre>
+      <p><strong>JWT payload</strong> (<code>jwt.sign</code> ด้วย <code>JWT_SECRET</code>, <strong>ไม่ใส่ <code>expiresIn</code></strong>)</p>
+      <pre><code>{
+  "token": "sys-001",
+  "uid": "sys-001",
+  "name": "Caller System",
+  "time": "&lt;Date ตอน gen&gt;",
+  "url": "&lt;process.env.URL&gt;",
+  "iat": 0
+}</code></pre>
+      <p>โค้ดที่เคยหมดอายุถูก comment ไว้แล้ว:</p>
+      <p class="caption"><code>src/app/controller/Apiv2Controller.ts</code></p>
+      <pre><code>// let token = await jwt.sign(token_model, process.env.JWT_SECRET as string, { expiresIn: process.env.EXPIRE_TIME })
+let token = sign(token_model, process.env.JWT_SECRET as string);</code></pre>
+      <p><strong>Response สำเร็จ</strong></p>
+      <pre><code>{
+  "code": 200,
+  "data": { "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+  "message": "Token Genarated",
+  "status": true
+}</code></pre>
+      <table>
+        <thead>
+          <tr>
+            <th>HTTP</th>
+            <th>เมื่อไหร่?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>200</code></td><td>sign สำเร็จ — ใช้ <code>data.token</code> เป็น Bearer</td></tr>
+          <tr><td><code>400</code></td><td>body ไม่ครบ / type ผิด / field นอก spec</td></tr>
+          <tr><td><code>500</code></td><td>init Firebase หรือต่อ DB ไม่ได้ (เปิด pool แต่ไม่ได้ validate uid กับตาราง)</td></tr>
+        </tbody>
+      </table>
+      <p><strong>อายุและ revoke</strong></p>
+      <table>
+        <thead>
+          <tr>
+            <th>เรื่อง</th>
+            <th>พฤติกรรมจริง</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>หมดอายุ</td><td><strong>ไม่มี</strong> — gen ครั้งเดียวใช้ได้ยาว</td></tr>
+          <tr><td>ตรวจตอนค้นไวน์</td><td><code>jwt.verify(token, JWT_SECRET)</code> อย่างเดียว ไม่เช็ค DB / ไม่เช็ค <code>exp</code></td></tr>
+          <tr><td>revoke รายผู้เรียก</td><td><strong>ไม่มี revoke list</strong> — ออก token ใหม่ให้ไม่ได้ทำให้ของเก่าใช้ไม่ได้</td></tr>
+          <tr><td>revoke ทั้งระบบ</td><td>rotate <code>JWT_SECRET</code> → JWT เก่าทั้งหมด <code>401 Invalid Token</code> แล้วต้อง gen ใหม่ให้ทุกคน</td></tr>
+          <tr><td>อย่าเปิด <code>apiv2-ExciseToken</code> ออก <code>/cloud/</code></td><td>endpoint นี้ไม่มี auth ของตัวเอง</td></tr>
+        </tbody>
+      </table>
+
+      <h3>3.2 Proof — ค้นไวน์บังคับ Bearer</h3>
+      <p>1. Route ชี้ไปที่ handler <code>wse</code> โดยตรง</p>
+      <p class="caption"><code>src/app/routes/apiv2.ts</code> · <code>Apiv2Controller.ts</code></p>
+      <pre><code>apiv2.post("/apiv2-Winesearch_Excise", Apiv2Controller.Winesearch_Excise);
+static Winesearch_Excise: RequestHandler = wse;</code></pre>
+      <p>2. Handler ดึง token <strong>ก่อน</strong> validate body / ค้นข้อมูล ไม่มี <code>Authorization</code> → <code>401</code> verify ไม่ผ่าน → <code>401</code></p>
+      <p class="caption"><code>src/app/controller/wse.ts</code></p>
+      <pre><code>const resolveToken = (request: Request, response: Response&lt;any&gt;) =&gt; {
+  let authHeader = request.headers["authorization"] as string;
+  if (!authHeader) {
+    response.status(401).send("You are not authenticate !");
+    return;
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.JWT_SECRET as string, (err) =&gt; {
+    if (err) {
+      response.status(401).send("Invalid Token");
+      throw new Error("Invalid Token");
+    }
+  });
+  return jwt.decode(token) as TokenData | null;
+};</code></pre>
+      <p>3. Gate ของทั้ง endpoint: มี decoded token เท่านั้นถึงจะทำงานต่อ ไม่มี → <code>401</code></p>
+      <pre><code>const wse: RequestHandler = async (request, response) =&gt; {
+  try {
+    let decodedToken = resolveToken(request, response);
+    if (decodedToken) {
+      // ... search ...
+    } else {
+      response.status(401).send("You are Not authenticate !!!");
+    }</code></pre>
+
+      <h3>3.3 ผลลัพธ์ตาม token (ตอนค้นไวน์)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>กรณี</th>
+            <th>HTTP</th>
+            <th>Body</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>ไม่มี header <code>Authorization</code></td><td><code>401</code></td><td>You are not authenticate ! (text)</td></tr>
+          <tr><td>Token ไม่ผ่าน <code>jwt.verify</code></td><td><code>401</code></td><td>Invalid Token (text)</td></tr>
+          <tr><td>Decode ได้ <code>null</code></td><td><code>401</code></td><td>You are Not authenticate !!! (text)</td></tr>
+          <tr><td>Token ถูกต้อง</td><td>ไปขั้นถัดไป</td><td>JSON</td></tr>
+        </tbody>
+      </table>
+      <p><strong>ตัวอย่าง — ไม่ส่ง token</strong></p>
+      <pre><code>POST /cloud/apiv2-Winesearch_Excise HTTP/1.1
+Host: api-taitaxes.excise.go.th
+Content-Type: application/json
+
+{ "...body..." }
+
+HTTP/1.1 401 Unauthorized
+You are not authenticate !</code></pre>
+    </section>
+
+    <section id="s3">
+      <h2>4. Request</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>รายการ</th>
+            <th>ค่า</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Method</td><td><code>POST</code></td></tr>
+          <tr><td>Content-Type</td><td><code>application/json</code></td></tr>
+          <tr><td>additionalProperties</td><td><code>false</code> — field นอก spec จะถูก reject</td></tr>
+        </tbody>
+      </table>
+      <h3>4.1 Body</h3>
+      <table>
+        <thead>
+          <tr>
+            <th class="col-name">Field</th>
+            <th class="col-type">Type</th>
+            <th class="col-req">Required</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>ReqNo</code></td><td>string</td><td>yes</td><td>เลขที่คำขอ ของ client ใช้จับคู่ request/response</td></tr>
+          <tr><td><code>Name</code></td><td>string</td><td>yes</td><td>ชื่อไวน์ — ถ้าเป็น <code>""</code> (string ว่าง) และมี <code>Piclabel</code> จะค้นจากรูปฉลาก</td></tr>
+          <tr><td><code>CategoryName</code></td><td>string</td><td>yes</td><td>กลุ่ม/ประเภทตามที่ผู้เรียกจัด — ไม่มี master / accept list ไม่ได้ใช้เป็นเงื่อนไขค้น แค่ log + echo ตอนไม่เจอ</td></tr>
+          <tr><td><code>Vintage</code></td><td>string</td><td>yes</td><td>ปี เช่น <code>"2018"</code> หรือ <code>"NV"</code></td></tr>
+          <tr><td><code>BottleSize</code></td><td>string</td><td>yes</td><td>ขนาดขวด — ดู mapping ด้านล่าง</td></tr>
+          <tr><td><code>Avb</code></td><td>number</td><td>yes</td><td>แอลกอฮอล์ (%) ต้องเป็น number ไม่ใช่ string</td></tr>
+          <tr><td><code>Country</code></td><td>string</td><td>yes</td><td>ประเทศ</td></tr>
+          <tr><td><code>Region</code></td><td>string</td><td>yes</td><td>ภูมิภาค</td></tr>
+          <tr><td><code>Piclabel</code></td><td>string</td><td>no</td><td>รูปฉลากเป็น base64 ของไฟล์รูป (jpeg / png) — ใช้เมื่อ <code>Name</code> เป็น <code>""</code> (string ว่าง)</td></tr>
+        </tbody>
+      </table>
+      <p><code>Piclabel</code> schema เช็คแค่ว่าเป็น string ไม่ได้ตรวจว่าเป็น base64 ที่ถูกต้อง ส่งได้ raw base64 หรือ data URI (<code>data:image/jpeg;base64,...</code> / <code>data:image/png;base64,...</code>) ฝั่งค้นรูปตัด prefix ให้ ห้ามส่ง URL หรือ binary</p>
+      <h3>4.2 BottleSize mapping (ฝั่ง API)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ค่าที่ส่ง</th>
+            <th>BottleCode</th>
+            <th>ค่าที่ใช้ค้นราคา</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>375ml</code> / <code>0.375</code></td><td><code>h</code></td><td>Half Bottle (375ml)</td></tr>
+          <tr><td><code>750ml</code> / <code>0.750</code></td><td><code>B</code></td><td>Bottle (750ml)</td></tr>
+          <tr><td><code>1500ml</code> / <code>1.500</code></td><td><code>m</code></td><td>Magnum (1.5L)</td></tr>
+          <tr><td><code>3000ml</code> / <code>3.000</code></td><td><code>dm</code></td><td>Double Magnums (3L)</td></tr>
+          <tr><td>อื่นๆ</td><td><code>O</code></td><td>ใช้ค่าที่ส่งมาตรงๆ</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="s4">
+      <h2>5. Response</h2>
+      <p><code>Content-Type: application/json</code> (ยกเว้น 401 / 404 ที่เป็น text)</p>
+      <pre><code>{
+  "Success": true,
+  "Message": "",
+  "ReqNo": "",
+  "Query": "",
+  "Vintage": "",
+  "Size": "",
+  "Data": [],
+  "Suggestions": []
+}</code></pre>
+      <h3>5.1 Envelope</h3>
+      <table>
+        <thead>
+          <tr>
+            <th class="col-name">Field</th>
+            <th class="col-type">Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Success</code></td><td>boolean</td><td>ผลค้นหาโดยรวม</td></tr>
+          <tr><td><code>Message</code></td><td>string</td><td>ข้อความสถานะ (ภาษาไทย)</td></tr>
+          <tr><td><code>ReqNo</code></td><td>string</td><td>ค่าเดียวกับ request</td></tr>
+          <tr><td><code>Query</code></td><td>string</td><td>ชื่อที่ใช้ค้น (<code>Name</code>)</td></tr>
+          <tr><td><code>Vintage</code></td><td>string</td><td>ปีจาก request</td></tr>
+          <tr><td><code>Size</code></td><td>string</td><td><code>BottleSize</code> จาก request (ค่าดิบที่ส่งมา)</td></tr>
+          <tr><td><code>Data</code></td><td><code>WinesearchData[]</code></td><td>ผลหลัก</td></tr>
+          <tr><td><code>Suggestions</code></td><td><code>WinesuggestionsData[]</code></td><td>รายการใกล้เคียง</td></tr>
+        </tbody>
+      </table>
+      <h3>5.2 Data[] — WinesearchData</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Name</code></td><td>string</td></tr>
+          <tr><td><code>Pic</code></td><td>string (URL รูปขวด/ฉลาก, ว่างได้)</td></tr>
+          <tr><td><code>CategoryName</code></td><td>string</td></tr>
+          <tr><td><code>Country</code></td><td>string</td></tr>
+          <tr><td><code>Region</code></td><td>string</td></tr>
+          <tr><td><code>BottleSize</code></td><td>string</td></tr>
+          <tr><td><code>Avb</code></td><td>number</td></tr>
+          <tr><td><code>Vintage</code></td><td>string</td></tr>
+          <tr><td><code>RecommendPrice</code></td><td>number</td></tr>
+          <tr><td><code>RecommendMaxPrice</code></td><td>number</td></tr>
+          <tr><td><code>RecommendMinPrice</code></td><td>number</td></tr>
+        </tbody>
+      </table>
+      <h3>5.3 Suggestions[] — WinesuggestionsData</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Name</code></td><td>string</td></tr>
+          <tr><td><code>Pic</code></td><td>string</td></tr>
+          <tr><td><code>CategoryName</code></td><td>string</td></tr>
+          <tr><td><code>Country</code></td><td>string</td></tr>
+          <tr><td><code>Region</code></td><td>string</td></tr>
+          <tr><td><code>BottleSize</code></td><td>string</td></tr>
+          <tr><td><code>Avb</code></td><td>number</td></tr>
+          <tr><td><code>Vintages</code></td><td><code>vintageandprice[]</code></td></tr>
+        </tbody>
+      </table>
+      <p><code>Vintages[]</code></p>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Vintage</code></td><td>string</td></tr>
+          <tr><td><code>RecommendPrice</code></td><td>number</td></tr>
+          <tr><td><code>RecommendMaxPrice</code></td><td>number</td></tr>
+          <tr><td><code>RecommendMinPrice</code></td><td>number</td></tr>
+        </tbody>
+      </table>
+      <h3>5.4 Message ที่ client ควร handle</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Message</th>
+            <th>ความหมาย</th>
+            <th>Data / Suggestions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>พบข้อมูลแนะนำราคาขายเบื้องต้น</td>
+            <td>พบราคาตรงรายการ</td>
+            <td><code>Data</code> มีราคา, <code>Suggestions</code> ว่างหรือไม่ใช้</td>
+          </tr>
+          <tr>
+            <td>พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง</td>
+            <td>ไม่ exact — มีรายการใกล้เคียง</td>
+            <td><code>Data</code> มัก echo ค่าจาก request (ราคา 0), <code>Suggestions</code> มีรายการ</td>
+          </tr>
+          <tr>
+            <td>ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น</td>
+            <td>ไม่มีราคาแนะนำ (รวมกรณีราคา = 0)</td>
+            <td><code>Data</code> echo ค่าจาก request, ราคาเป็น 0</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="s5">
+      <h2>6. HTTP Status</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>เมื่อไหร่?</th>
+            <th>Body</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>200</code></td><td>ค้นหาเสร็จ (ทั้งพบ / ไม่พบ / ใกล้เคียง)</td><td>JSON envelope</td></tr>
+          <tr><td><code>400</code></td><td>body ไม่ผ่าน schema</td><td>JSON <code>Success=false</code>, <code>Message="Bad Request : กรุณาระบุประเภทข้อมูลให้ถูกต้อง."</code></td></tr>
+          <tr><td><code>401</code></td><td>ไม่มี / token ไม่ผ่าน</td><td>text</td></tr>
+          <tr><td><code>404</code></td><td>exception ระหว่างค้นข้อมูลไวน์</td><td>text <code>Wine Data not found</code></td></tr>
+          <tr><td><code>500</code></td><td>init / DB / search error</td><td>JSON <code>Success=false</code>, <code>Message</code> ขึ้นต้น Internal Server Error</td></tr>
+        </tbody>
+      </table>
+      <p><code>200</code> + <code>Success=false</code> เป็นไปได้ เมื่อค้นแล้วไม่มีผลที่ใช้ได้</p>
+    </section>
+
+    <section id="s6">
+      <h2>7. Examples</h2>
+      <h3>7.1 ค้นจากชื่อ</h3>
+      <pre><code>POST /cloud/apiv2-Winesearch_Excise HTTP/1.1
+Host: api-taitaxes.excise.go.th
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "ReqNo": "SMT-20260820-0001",
+  "Name": "Penfolds Grange",
+  "CategoryName": "Red",
+  "Vintage": "2018",
+  "BottleSize": "750ml",
+  "Avb": 14.5,
+  "Country": "Australia",
+  "Region": "South Australia"
+}</code></pre>
+      <p>พบราคา</p>
+      <pre><code>{
+  "Success": true,
+  "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้น",
+  "ReqNo": "SMT-20260820-0001",
+  "Query": "Penfolds Grange",
+  "Vintage": "2018",
+  "Size": "750ml",
+  "Data": [
+    {
+      "Name": "Penfolds Grange",
+      "Pic": "https://storage.example/wine/penfolds-grange.jpg",
+      "CategoryName": "Red",
+      "Country": "Australia",
+      "Region": "South Australia",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 14.5,
+      "Vintage": "2018",
+      "RecommendPrice": 28500,
+      "RecommendMaxPrice": 32000,
+      "RecommendMinPrice": 25000
+    }
+  ],
+  "Suggestions": []
+}</code></pre>
+      <p>ใกล้เคียง</p>
+      <pre><code>{
+  "Success": true,
+  "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง",
+  "ReqNo": "SMT-20260820-0001",
+  "Query": "Penfolds Grange",
+  "Vintage": "2018",
+  "Size": "750ml",
+  "Data": [ { "RecommendPrice": 0, "...": "echo request" } ],
+  "Suggestions": [
+    {
+      "Name": "Penfolds Grange Bin 95",
+      "Vintages": [
+        { "Vintage": "2017", "RecommendPrice": 26000, "RecommendMaxPrice": 29000, "RecommendMinPrice": 23000 }
+      ]
+    }
+  ]
+}</code></pre>
+      <h3>7.2 ค้นจากรูปฉลาก</h3>
+      <p>ส่ง <code>Name</code> เป็น <code>""</code> (string ว่าง) และใส่ <code>Piclabel</code> เป็น base64 ของไฟล์รูป ถ้า <code>Name</code> ไม่ว่าง <code>Piclabel</code> จะไม่ถูกใช้ค้น</p>
+      <h3>7.3 Bad Request</h3>
+      <p>ขาด field ที่ required, <code>Avb</code> เป็น string, หรือส่ง field นอก spec</p>
+      <pre><code>{
+  "Success": false,
+  "Message": "Bad Request : กรุณาระบุประเภทข้อมูลให้ถูกต้อง.",
+  "Data": [],
+  "Suggestions": []
+}</code></pre>
+    </section>
+
+    <section id="s7">
+      <h2>8. Client notes</h2>
+      <ol>
+        <li><strong>Access token บังคับ</strong> — ไม่มี <code>Authorization: Bearer &lt;jwt&gt;</code> แล้วได้ <code>401</code> ทันที ไม่ค้นไวน์</li>
+        <li><strong>Entry point</strong> — ผู้เรียกยิงที่ระบบงานภายในกรมสรรพสามิต (<code>api-taitaxes.excise.go.th</code>) เท่านั้น Thinkbit อย่ายิง origin ให้ผู้เรียกใช้โดยตรง UAT = <code>/uat/cloud/apiv2-Winesearch_Excise</code> (ต้องเพิ่ม location) · prod = <code>/cloud/apiv2-Winesearch_Excise</code></li>
+        <li><strong>ราคาเป็น THB</strong> — API ค้นราคาด้วย <code>Currencycode=THB</code></li>
+        <li><code>Avb</code> ต้องเป็น number — schema ไม่รับ string</li>
+        <li><code>Piclabel</code> เป็น optional — omit ได้ถ้าไม่ค้นจากรูป ถ้าส่งต้องเป็น base64 ของไฟล์รูป (jpeg / png) raw หรือ data URI ก็ได้ ห้าม URL / binary schema ไม่ validate ว่า base64 ถูกต้อง</li>
+        <li>ค้นจากรูปเกิดเมื่อ <code>Name === ""</code> และ <code>Piclabel</code> ไม่ว่าง หลัง trim — ตัด prefix <code>data:image/jpeg;base64,</code> / <code>data:image/png;base64,</code> แล้วส่งเข้าค้นรูป</li>
+        <li>Timeout ฝั่ง proxy สูงสุด 600 วินาที</li>
+        <li>Log — insert <code>tbExciseSearchLog</code> (<code>Reqno</code>, request, response, IP, token uid)</li>
+        <li>Body size — เพดานฝั่งผู้เรียกคือ <strong>10 MB ที่ระบบงานภายในกรมสรรพสามิต</strong></li>
+      </ol>
+    </section>
+
+    <section id="s8">
+      <h2>9. Proxy (อ้างอิง DRAFT)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>ไฟล์</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>ระบบงานภายในกรมสรรพสามิต</td><td><code>excise-wine-proxy/remote/gateway/conf.d/api-taitaxes-excise-go-th.conf</code></td></tr>
+          <tr><td>Cloud UAT</td><td><code>excise-wine-proxy/aws/uat/nginx/default.conf</code></td></tr>
+          <tr><td>Cloud prod</td><td><code>excise-wine-proxy/aws/uat/nginx/prod.conf</code></td></tr>
+        </tbody>
+      </table>
+      <p><strong>Production (live)</strong></p>
+      <p class="url"><code>api-taitaxes</code> <code>/cloud/apiv2-Winesearch_Excise</code> → <code>winefasttrack.excise.go.th</code> → <code>excise-wine-nodejs-api.devthinkbit.com/apiv2-Winesearch_Excise</code></p>
+      <p><strong>UAT</strong> (cloud + origin มีแล้ว, ระบบงานภายในกรมสรรพสามิต ต้องเพิ่ม location)</p>
+      <p class="url"><code>api-taitaxes</code> <code>/uat/cloud/apiv2-Winesearch_Excise</code> → <code>winefasttrack-uat.excise.go.th/cloud/apiv2-Winesearch_Excise</code> → <code>excise-wine-nodejs-api-staging.devthinkbit.com/apiv2-Winesearch_Excise</code></p>
+      <p>snippet ที่ต้องเพิ่มอยู่ที่ <code>DRAFT.md</code> ข้อ 3</p>
+    </section>
+  </article>
+</body>
+</html>
