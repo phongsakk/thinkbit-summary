@@ -457,7 +457,7 @@ Content-Type: application/json</code></pre>
             <td><code>ReqNo</code></td>
             <td>string</td>
             <td>yes</td>
-            <td>เลขที่คำขอของฝั่งผู้เรียก ใช้จับคู่ request/response</td>
+            <td>รหัสอ้างอิงของคำขอฝั่งผู้เรียก — ส่ง <code>""</code> ได้ ระบบไม่ใช้เป็นเงื่อนไขค้น</td>
           </tr>
           <tr>
             <td><code>Name</code></td>
@@ -469,7 +469,7 @@ Content-Type: application/json</code></pre>
             <td><code>CategoryName</code></td>
             <td>string</td>
             <td>yes</td>
-            <td>กลุ่ม/ประเภท ตามที่ฝั่งผู้เรียกจัดไว้ — ไม่มี master data และไม่มีรายการค่าที่ต้องตรง</td>
+            <td>ประเภทไวน์ตามที่ฝั่งผู้เรียกระบุ — ส่ง <code>""</code> ได้ ระบบไม่ใช้เป็นเงื่อนไขค้น</td>
           </tr>
           <tr>
             <td><code>Vintage</code></td>
@@ -509,7 +509,8 @@ Content-Type: application/json</code></pre>
           </tr>
         </tbody>
       </table>
-      <p><code>CategoryName</code> ส่งตามการจัดกลุ่มของฝั่งผู้เรียกได้เลย ไม่มีรายการกลางให้เลือก และไม่ต้องตรงกับค่าที่กำหนดไว้ล่วงหน้า ใช้เป็นข้อความกำกับคำขอ</p>
+      <p><code>ReqNo</code> และ <code>CategoryName</code> ต้องมีใน body เป็น string แต่<strong>ไม่ใช้เป็นเงื่อนไขค้น</strong> การค้นใช้ <code>Name</code> หรือ <code>Piclabel</code> ร่วมกับ <code>Vintage</code>, <code>BottleSize</code>, <code>Avb</code>, <code>Country</code>, <code>Region</code> ส่ง <code>""</code> ได้ตามการใช้งานปกติ ไม่ต้องสร้างเลขที่คำขอ และไม่มีรายการประเภทกลางให้เลือกให้ตรง</p>
+      <p>ถ้าใส่ค่า <code>ReqNo</code> จะถูกคืนใน response ตามที่ส่งไป <code>CategoryName</code> ในผลลัพธ์เมื่อพบรายการเป็นประเภทจากฐานข้อมูล ไม่ใช่ค่าจาก request เมื่อไม่พบรายการ <code>Data</code> จะเป็นค่าที่ส่งไป</p>
       <p><code>Piclabel</code> ต้องเป็น string ของรูปแบบ <strong>base64</strong> ส่งได้ 2 แบบ: raw base64 เช่น ขึ้นต้น <code>/9j/</code> (JPEG) หรือ data URI <code>data:image/jpeg;base64,...</code> / <code>data:image/png;base64,...</code> ห้ามส่ง URL รูป และห้ามส่ง binary ใน JSON</p>
 
       <h3>3.1 BottleSize ที่รองรับ</h3>
@@ -580,7 +581,7 @@ Content-Type: application/json</code></pre>
           <tr>
             <td><code>ReqNo</code></td>
             <td>string</td>
-            <td>ค่าเดียวกับที่ส่งไป</td>
+            <td>ค่าเดียวกับที่ส่งไป — ส่ง <code>""</code> ได้</td>
           </tr>
           <tr>
             <td><code>Query</code></td>
@@ -622,7 +623,7 @@ Content-Type: application/json</code></pre>
         <tbody>
           <tr><td><code>Name</code></td><td>string</td><td>ชื่อไวน์</td></tr>
           <tr><td><code>Pic</code></td><td>string</td><td>URL รูป (ว่างได้)</td></tr>
-          <tr><td><code>CategoryName</code></td><td>string</td><td>ประเภท</td></tr>
+          <tr><td><code>CategoryName</code></td><td>string</td><td>ประเภทจากผลค้น — เมื่อไม่พบรายการเป็นค่าที่ส่งไปใน request</td></tr>
           <tr><td><code>Country</code></td><td>string</td><td>ประเทศ</td></tr>
           <tr><td><code>Region</code></td><td>string</td><td>ภูมิภาค</td></tr>
           <tr><td><code>BottleSize</code></td><td>string</td><td>ขนาดขวด (อาจถูกแปลงเป็นชื่อเต็ม เช่น <code>Bottle (750ml)</code>)</td></tr>
@@ -646,7 +647,7 @@ Content-Type: application/json</code></pre>
         <tbody>
           <tr><td><code>Name</code></td><td>string</td><td>ชื่อไวน์</td></tr>
           <tr><td><code>Pic</code></td><td>string</td><td>URL รูป</td></tr>
-          <tr><td><code>CategoryName</code></td><td>string</td><td>ประเภท</td></tr>
+          <tr><td><code>CategoryName</code></td><td>string</td><td>ประเภทจากผลค้น</td></tr>
           <tr><td><code>Country</code></td><td>string</td><td>ประเทศ</td></tr>
           <tr><td><code>Region</code></td><td>string</td><td>ภูมิภาค</td></tr>
           <tr><td><code>BottleSize</code></td><td>string</td><td>ขนาดขวด</td></tr>
@@ -688,7 +689,7 @@ Content-Type: application/json</code></pre>
           <tr>
             <td>พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง</td>
             <td>ไม่ตรงเป๊ะ มีรายการใกล้เคียง</td>
-            <td><code>Data</code> มักเป็นค่าที่ส่งไป (ราคา 0) — ดู <code>Suggestions</code></td>
+            <td><code>Data</code> เป็นค่าที่ส่งไป (ราคา 0) — อ่านราคาจาก <code>Suggestions</code></td>
           </tr>
           <tr>
             <td>ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น</td>
@@ -750,58 +751,59 @@ Authorization: Bearer &lt;access_token&gt;
 Content-Type: application/json
 
 {
-  "ReqNo": "REQ-20260820-0001",
-  "Name": "Penfolds Grange",
-  "CategoryName": "Red",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Piclabel": "",
+  "Name": "CHATEAU MOUTON ROTHSCHILD",
+  "CategoryName": "",
+  "Vintage": "1993",
   "BottleSize": "750ml",
-  "Avb": 14.5,
-  "Country": "Australia",
-  "Region": "South Australia"
+  "Avb": 12.5,
+  "Country": "",
+  "Region": ""
 }</code></pre>
-      <p>พบราคา</p>
+      <p>พบราคา — <code>CategoryName</code> / <code>Country</code> / <code>Region</code> ใน <code>Data</code> มาจากฐานข้อมูล ไม่ใช่ค่าที่ส่งไป</p>
       <pre><code>{
   "Success": true,
   "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้น",
-  "ReqNo": "REQ-20260820-0001",
-  "Query": "Penfolds Grange",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Query": "CHATEAU MOUTON ROTHSCHILD",
+  "Vintage": "1993",
   "Size": "750ml",
   "Data": [
     {
-      "Name": "Penfolds Grange",
-      "Pic": "https://example.com/wine.jpg",
-      "CategoryName": "Red",
-      "Country": "Australia",
-      "Region": "South Australia",
+      "Name": "Chateau Mouton Rothschild",
+      "Pic": "https://storage.example/wine/chateau-mouton-rothschild.jpg",
+      "CategoryName": "Red Wine",
+      "Country": "France",
+      "Region": "Pauillac",
       "BottleSize": "Bottle (750ml)",
-      "Avb": 14.5,
-      "Vintage": "2018",
-      "RecommendPrice": 28500,
-      "RecommendMaxPrice": 32000,
-      "RecommendMinPrice": 25000
+      "Avb": 12.5,
+      "Vintage": "1993",
+      "RecommendPrice": 32500,
+      "RecommendMaxPrice": 36500,
+      "RecommendMinPrice": 28500
     }
   ],
   "Suggestions": []
 }</code></pre>
-      <p>ใกล้เคียง</p>
+      <p>ใกล้เคียง — <code>Data</code> echo ค่าจาก request ราคาเป็น 0 อ่านราคาจาก <code>Suggestions</code></p>
       <pre><code>{
   "Success": true,
   "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง",
-  "ReqNo": "REQ-20260820-0001",
-  "Query": "Penfolds Grange",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Query": "CHATEAU MOUTON ROTHSCHILD",
+  "Vintage": "1993",
   "Size": "750ml",
   "Data": [
     {
-      "Name": "Penfolds Grange",
+      "Name": "CHATEAU MOUTON ROTHSCHILD",
       "Pic": "",
-      "CategoryName": "Red",
-      "Country": "Australia",
-      "Region": "South Australia",
+      "CategoryName": "",
+      "Country": "",
+      "Region": "",
       "BottleSize": "Bottle (750ml)",
-      "Avb": 14.5,
-      "Vintage": "2018",
+      "Avb": 12.5,
+      "Vintage": "1993",
       "RecommendPrice": 0,
       "RecommendMaxPrice": 0,
       "RecommendMinPrice": 0
@@ -809,19 +811,25 @@ Content-Type: application/json
   ],
   "Suggestions": [
     {
-      "Name": "Penfolds Grange Bin 95",
-      "Pic": "https://example.com/wine.jpg",
-      "CategoryName": "Red",
-      "Country": "Australia",
-      "Region": "South Australia",
+      "Name": "Chateau Mouton Rothschild",
+      "Pic": "https://storage.example/wine/chateau-mouton-rothschild.jpg",
+      "CategoryName": "Red Wine",
+      "Country": "France",
+      "Region": "Pauillac",
       "BottleSize": "Bottle (750ml)",
-      "Avb": 14.5,
+      "Avb": 12.5,
       "Vintages": [
         {
-          "Vintage": "2017",
-          "RecommendPrice": 26000,
-          "RecommendMaxPrice": 29000,
-          "RecommendMinPrice": 23000
+          "Vintage": "1994",
+          "RecommendPrice": 29800,
+          "RecommendMaxPrice": 33500,
+          "RecommendMinPrice": 26200
+        },
+        {
+          "Vintage": "1995",
+          "RecommendPrice": 41200,
+          "RecommendMaxPrice": 45800,
+          "RecommendMinPrice": 36500
         }
       ]
     }
@@ -831,15 +839,15 @@ Content-Type: application/json
       <h3>6.2 ค้นจากรูปฉลาก</h3>
       <p>ส่ง <code>Name</code> เป็น <code>""</code> (string ว่าง) และใส่ <code>Piclabel</code> เป็น base64 ของไฟล์รูป</p>
       <pre><code>{
-  "ReqNo": "REQ-20260820-0002",
+  "ReqNo": "",
+  "Piclabel": "/9j/4AAQSkZJRgABAQAAAQABAAD...",
   "Name": "",
-  "CategoryName": "Red",
-  "Vintage": "2019",
+  "CategoryName": "",
+  "Vintage": "1993",
   "BottleSize": "750ml",
-  "Avb": 13.5,
-  "Country": "France",
-  "Region": "Bordeaux",
-  "Piclabel": "/9j/4AAQSkZJRgABAQAAAQABAAD..."
+  "Avb": 12.5,
+  "Country": "",
+  "Region": ""
 }</code></pre>
       <p>ถ้า <code>Name</code> ไม่ว่าง ระบบจะค้นจากชื่อ และไม่ใช้ <code>Piclabel</code></p>
 
@@ -865,17 +873,17 @@ You are not authenticate !</code></pre>
       <pre><code>{
   "Success": true,
   "Message": "ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น",
-  "ReqNo": "REQ-20260820-0003",
-  "Query": "Unknown Wine",
+  "ReqNo": "",
+  "Query": "DOMAINE LES HAUTS DU RUISSEAU",
   "Vintage": "2020",
   "Size": "750ml",
   "Data": [
     {
-      "Name": "Unknown Wine",
+      "Name": "DOMAINE LES HAUTS DU RUISSEAU",
       "Pic": "",
-      "CategoryName": "Red",
-      "Country": "France",
-      "Region": "Burgundy",
+      "CategoryName": "",
+      "Country": "",
+      "Region": "",
       "BottleSize": "Bottle (750ml)",
       "Avb": 13,
       "Vintage": "2020",
@@ -896,7 +904,7 @@ You are not authenticate !</code></pre>
         <li>เก็บ token เป็นความลับ ห้ามเปิดเผยในเอกสารหรือโค้ดสาธารณะ</li>
         <li>ราคาเป็นบาท (THB)</li>
         <li><code>Avb</code> ต้องเป็น number เช่น <code>14.5</code> ไม่ใช่ <code>"14.5"</code></li>
-        <li><code>CategoryName</code> ส่งตามที่ฝั่งผู้เรียกจัดกลุ่ม ไม่มี master data และไม่มีรายการค่าที่รับเฉพาะ</li>
+        <li><code>ReqNo</code> และ <code>CategoryName</code> ส่ง <code>""</code> ได้ ระบบไม่ใช้เป็นเงื่อนไขค้น ไม่ต้องสร้างเลขที่คำขอ และไม่มี master data ของประเภท</li>
         <li><code>Piclabel</code> ละได้ถ้าไม่ค้นจากรูป ถ้าส่งต้องเป็น base64 ของไฟล์รูป (jpeg / png) ไม่ใช่ URL และไม่ใช่ binary</li>
         <li>ค้นจากรูปเมื่อ <code>Name</code> เป็น <code>""</code> (string ว่าง) และมี <code>Piclabel</code></li>
         <li>ค้นจากรูปหรือหลายรายการอาจใช้เวลานาน แนะนำ timeout ฝั่งผู้เรียกไม่ต่ำกว่า 10 นาที</li>

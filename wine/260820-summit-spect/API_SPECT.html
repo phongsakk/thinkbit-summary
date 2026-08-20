@@ -581,9 +581,9 @@ You are not authenticate !</code></pre>
           </tr>
         </thead>
         <tbody>
-          <tr><td><code>ReqNo</code></td><td>string</td><td>yes</td><td>เลขที่คำขอ ของ client ใช้จับคู่ request/response</td></tr>
+          <tr><td><code>ReqNo</code></td><td>string</td><td>yes</td><td>passthrough — echo กลับใน envelope และเขียน <code>tbExciseSearchLog.Reqno</code> ไม่ใช้ค้น ผู้เรียกส่ง <code>""</code> มาตลอด ยังไม่มีแผนใช้เป็น correlation id จริง</td></tr>
           <tr><td><code>Name</code></td><td>string</td><td>yes</td><td>ชื่อไวน์ — ถ้าเป็น <code>""</code> (string ว่าง) และมี <code>Piclabel</code> จะค้นจากรูปฉลาก</td></tr>
-          <tr><td><code>CategoryName</code></td><td>string</td><td>yes</td><td>กลุ่ม/ประเภทตามที่ผู้เรียกจัด — ไม่มี master / accept list ไม่ได้ใช้เป็นเงื่อนไขค้น แค่ log + echo ตอนไม่เจอ</td></tr>
+          <tr><td><code>CategoryName</code></td><td>string</td><td>yes</td><td>passthrough — ไม่มี master / accept list ไม่ได้ filter ผลค้น แค่ log + echo ตอนไม่เจอ ผู้เรียกส่ง <code>""</code> มาตลอด ยังไม่มีแผนใช้เป็นเงื่อนไขค้น</td></tr>
           <tr><td><code>Vintage</code></td><td>string</td><td>yes</td><td>ปี เช่น <code>"2018"</code> หรือ <code>"NV"</code></td></tr>
           <tr><td><code>BottleSize</code></td><td>string</td><td>yes</td><td>ขนาดขวด — ดู mapping ด้านล่าง</td></tr>
           <tr><td><code>Avb</code></td><td>number</td><td>yes</td><td>แอลกอฮอล์ (%) ต้องเป็น number ไม่ใช่ string</td></tr>
@@ -592,6 +592,7 @@ You are not authenticate !</code></pre>
           <tr><td><code>Piclabel</code></td><td>string</td><td>no</td><td>รูปฉลากเป็น base64 ของไฟล์รูป (jpeg / png) — ใช้เมื่อ <code>Name</code> เป็น <code>""</code> (string ว่าง)</td></tr>
         </tbody>
       </table>
+      <p><code>ReqNo</code> และ <code>CategoryName</code> เป็น <strong>passthrough / reserved ใน schema</strong> — required เพราะ <code>additionalProperties: false</code> บังคับครบฟิลด์ ไม่ใช่เพราะใช้ค้น <code>CategoryName</code> ใน <code>Data[]</code> / <code>Suggestions[]</code> เป็นค่าจากผลค้น ไม่ใช่ค่าจาก request</p>
       <p><code>Piclabel</code> schema เช็คแค่ว่าเป็น string ไม่ได้ตรวจว่าเป็น base64 ที่ถูกต้อง ส่งได้ raw base64 หรือ data URI (<code>data:image/jpeg;base64,...</code> / <code>data:image/png;base64,...</code>) ฝั่งค้นรูปตัด prefix ให้ ห้ามส่ง URL หรือ binary</p>
       <h3>4.2 BottleSize mapping (ฝั่ง API)</h3>
       <table>
@@ -637,7 +638,7 @@ You are not authenticate !</code></pre>
         <tbody>
           <tr><td><code>Success</code></td><td>boolean</td><td>ผลค้นหาโดยรวม</td></tr>
           <tr><td><code>Message</code></td><td>string</td><td>ข้อความสถานะ (ภาษาไทย)</td></tr>
-          <tr><td><code>ReqNo</code></td><td>string</td><td>ค่าเดียวกับ request</td></tr>
+          <tr><td><code>ReqNo</code></td><td>string</td><td>ค่าเดียวกับ request — ผู้เรียกส่ง <code>""</code> ได้</td></tr>
           <tr><td><code>Query</code></td><td>string</td><td>ชื่อที่ใช้ค้น (<code>Name</code>)</td></tr>
           <tr><td><code>Vintage</code></td><td>string</td><td>ปีจาก request</td></tr>
           <tr><td><code>Size</code></td><td>string</td><td><code>BottleSize</code> จาก request (ค่าดิบที่ส่งมา)</td></tr>
@@ -686,6 +687,7 @@ You are not authenticate !</code></pre>
           <tr><td><code>Vintages</code></td><td><code>vintageandprice[]</code></td></tr>
         </tbody>
       </table>
+      <p><code>CategoryName</code> ใน <code>Data[]</code> / <code>Suggestions[]</code> มาจากผลค้น เมื่อไม่พบรายการ <code>Data</code> echo ค่าจาก request (ผู้เรียกมักส่ง <code>""</code>)</p>
       <p><code>Vintages[]</code></p>
       <table>
         <thead>
@@ -719,7 +721,7 @@ You are not authenticate !</code></pre>
           <tr>
             <td>พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง</td>
             <td>ไม่ exact — มีรายการใกล้เคียง</td>
-            <td><code>Data</code> มัก echo ค่าจาก request (ราคา 0), <code>Suggestions</code> มีรายการ</td>
+            <td><code>Data</code> echo ค่าจาก request (ราคา 0), <code>Suggestions</code> มีรายการจากฐานข้อมูล</td>
           </tr>
           <tr>
             <td>ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น</td>
@@ -754,60 +756,93 @@ You are not authenticate !</code></pre>
     <section id="s6">
       <h2>7. Examples</h2>
       <h3>7.1 ค้นจากชื่อ</h3>
+      <p>request ตามการใช้งานจริง (<code>ReqNo</code> / <code>CategoryName</code> / <code>Country</code> / <code>Region</code> / <code>Piclabel</code> เป็น <code>""</code>) response เป็น mock ให้เห็นครบทั้งพบราคาและใกล้เคียง</p>
       <pre><code>POST /cloud/apiv2-Winesearch_Excise HTTP/1.1
 Host: api-taitaxes.excise.go.th
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Authorization: Bearer &lt;access_token&gt;
 Content-Type: application/json
 
 {
-  "ReqNo": "SMT-20260820-0001",
-  "Name": "Penfolds Grange",
-  "CategoryName": "Red",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Piclabel": "",
+  "Name": "CHATEAU MOUTON ROTHSCHILD",
+  "CategoryName": "",
+  "Vintage": "1993",
   "BottleSize": "750ml",
-  "Avb": 14.5,
-  "Country": "Australia",
-  "Region": "South Australia"
+  "Avb": 12.5,
+  "Country": "",
+  "Region": ""
 }</code></pre>
-      <p>พบราคา</p>
+      <p>พบราคา — <code>Data</code> จากฐานข้อมูล ไม่ใช่ echo request</p>
       <pre><code>{
   "Success": true,
   "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้น",
-  "ReqNo": "SMT-20260820-0001",
-  "Query": "Penfolds Grange",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Query": "CHATEAU MOUTON ROTHSCHILD",
+  "Vintage": "1993",
   "Size": "750ml",
   "Data": [
     {
-      "Name": "Penfolds Grange",
-      "Pic": "https://storage.example/wine/penfolds-grange.jpg",
-      "CategoryName": "Red",
-      "Country": "Australia",
-      "Region": "South Australia",
+      "Name": "Chateau Mouton Rothschild",
+      "Pic": "https://storage.example/wine/chateau-mouton-rothschild.jpg",
+      "CategoryName": "Red Wine",
+      "Country": "France",
+      "Region": "Pauillac",
       "BottleSize": "Bottle (750ml)",
-      "Avb": 14.5,
-      "Vintage": "2018",
-      "RecommendPrice": 28500,
-      "RecommendMaxPrice": 32000,
-      "RecommendMinPrice": 25000
+      "Avb": 12.5,
+      "Vintage": "1993",
+      "RecommendPrice": 32500,
+      "RecommendMaxPrice": 36500,
+      "RecommendMinPrice": 28500
     }
   ],
   "Suggestions": []
 }</code></pre>
-      <p>ใกล้เคียง</p>
+      <p>ใกล้เคียง — <code>Data</code> echo request ราคา 0, <code>Suggestions</code> จากฐานข้อมูล</p>
       <pre><code>{
   "Success": true,
   "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง",
-  "ReqNo": "SMT-20260820-0001",
-  "Query": "Penfolds Grange",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Query": "CHATEAU MOUTON ROTHSCHILD",
+  "Vintage": "1993",
   "Size": "750ml",
-  "Data": [ { "RecommendPrice": 0, "...": "echo request" } ],
+  "Data": [
+    {
+      "Name": "CHATEAU MOUTON ROTHSCHILD",
+      "Pic": "",
+      "CategoryName": "",
+      "Country": "",
+      "Region": "",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 12.5,
+      "Vintage": "1993",
+      "RecommendPrice": 0,
+      "RecommendMaxPrice": 0,
+      "RecommendMinPrice": 0
+    }
+  ],
   "Suggestions": [
     {
-      "Name": "Penfolds Grange Bin 95",
+      "Name": "Chateau Mouton Rothschild",
+      "Pic": "https://storage.example/wine/chateau-mouton-rothschild.jpg",
+      "CategoryName": "Red Wine",
+      "Country": "France",
+      "Region": "Pauillac",
+      "BottleSize": "Bottle (750ml)",
+      "Avb": 12.5,
       "Vintages": [
-        { "Vintage": "2017", "RecommendPrice": 26000, "RecommendMaxPrice": 29000, "RecommendMinPrice": 23000 }
+        {
+          "Vintage": "1994",
+          "RecommendPrice": 29800,
+          "RecommendMaxPrice": 33500,
+          "RecommendMinPrice": 26200
+        },
+        {
+          "Vintage": "1995",
+          "RecommendPrice": 41200,
+          "RecommendMaxPrice": 45800,
+          "RecommendMinPrice": 36500
+        }
       ]
     }
   ]
@@ -835,6 +870,7 @@ Content-Type: application/json
         <li>ค้นจากรูปเกิดเมื่อ <code>Name === ""</code> และ <code>Piclabel</code> ไม่ว่าง หลัง trim — ตัด prefix <code>data:image/jpeg;base64,</code> / <code>data:image/png;base64,</code> แล้วส่งเข้าค้นรูป</li>
         <li>Timeout ฝั่ง proxy สูงสุด 600 วินาที</li>
         <li>Log — insert <code>tbExciseSearchLog</code> (<code>Reqno</code>, request, response, IP, token uid)</li>
+        <li><code>ReqNo</code> / <code>CategoryName</code> (request) เป็น passthrough — ไม่ใช้ค้น ผู้เรียกส่ง <code>""</code> ยังไม่มีแผนใช้จริง <code>CategoryName</code> ในผลค้นมาจากฐานข้อมูล</li>
         <li>Body size — เพดานฝั่งผู้เรียกคือ <strong>10 MB ที่ระบบงานภายในกรมสรรพสามิต</strong></li>
       </ol>
     </section>

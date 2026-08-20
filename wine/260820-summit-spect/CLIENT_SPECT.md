@@ -70,9 +70,9 @@ UAT ใช้ path `/uat/cloud/apiv2-Winesearch_Excise` และ token ขอ�
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `ReqNo` | string | yes | เลขที่คำขอของฝั่งผู้เรียก ใช้จับคู่ request/response |
+| `ReqNo` | string | yes | รหัสอ้างอิงของคำขอฝั่งผู้เรียก — ส่ง `""` ได้ ระบบไม่ใช้เป็นเงื่อนไขค้น |
 | `Name` | string | yes | ชื่อไวน์ — ถ้าเป็น `""` (string ว่าง) และมี `Piclabel` จะค้นจากรูปฉลาก |
-| `CategoryName` | string | yes | กลุ่ม/ประเภท ตามที่ฝั่งผู้เรียกจัดไว้ — ไม่มี master data และไม่มีรายการค่าที่ต้องตรง |
+| `CategoryName` | string | yes | ประเภทไวน์ตามที่ฝั่งผู้เรียกระบุ — ส่ง `""` ได้ ระบบไม่ใช้เป็นเงื่อนไขค้น |
 | `Vintage` | string | yes | ปี เช่น `"2018"` หรือ `"NV"` |
 | `BottleSize` | string | yes | ขนาดขวด — ดูค่าที่รองรับด้านล่าง |
 | `Avb` | number | yes | แอลกอฮอล์ (%) ต้องเป็นตัวเลข ไม่ใช่ string |
@@ -80,7 +80,9 @@ UAT ใช้ path `/uat/cloud/apiv2-Winesearch_Excise` และ token ขอ�
 | `Region` | string | yes | ภูมิภาค |
 | `Piclabel` | string | no | รูปฉลากเป็น base64 ของไฟล์รูป (jpeg / png) — ใช้เมื่อ `Name` เป็น `""` (string ว่าง) |
 
-`CategoryName` ส่งตามการจัดกลุ่มของฝั่งผู้เรียกได้เลย ไม่มีรายการกลางให้เลือก และไม่ต้องตรงกับค่าที่กำหนดไว้ล่วงหน้า ใช้เป็นข้อความกำกับคำขอ
+`ReqNo` และ `CategoryName` ต้องมีใน body เป็น string แต่**ไม่ใช้เป็นเงื่อนไขค้น** การค้นใช้ `Name` หรือ `Piclabel` ร่วมกับ `Vintage`, `BottleSize`, `Avb`, `Country`, `Region` ส่ง `""` ได้ตามการใช้งานปกติ ไม่ต้องสร้างเลขที่คำขอ และไม่มีรายการประเภทกลางให้เลือกให้ตรง
+
+ถ้าใส่ค่า `ReqNo` จะถูกคืนใน response ตามที่ส่งไป `CategoryName` ในผลลัพธ์เมื่อพบรายการเป็นประเภทจากฐานข้อมูล ไม่ใช่ค่าจาก request เมื่อไม่พบรายการ `Data` จะเป็นค่าที่ส่งไป
 
 `Piclabel` ต้องเป็น string ของรูปแบบ **base64** ส่งได้ 2 แบบ: raw base64 เช่น ขึ้นต้น `/9j/` (JPEG) หรือ data URI `data:image/jpeg;base64,...` / `data:image/png;base64,...` ห้ามส่ง URL รูป และห้ามส่ง binary ใน JSON
 
@@ -117,7 +119,7 @@ UAT ใช้ path `/uat/cloud/apiv2-Winesearch_Excise` และ token ขอ�
 |---|---|---|
 | `Success` | boolean | ผลโดยรวม |
 | `Message` | string | ข้อความสถานะ (ภาษาไทย) |
-| `ReqNo` | string | ค่าเดียวกับที่ส่งไป |
+| `ReqNo` | string | ค่าเดียวกับที่ส่งไป — ส่ง `""` ได้ |
 | `Query` | string | ชื่อที่ใช้ค้น (`Name`) |
 | `Vintage` | string | ปีจาก request |
 | `Size` | string | `BottleSize` ตามที่ส่งมา |
@@ -130,7 +132,7 @@ UAT ใช้ path `/uat/cloud/apiv2-Winesearch_Excise` และ token ขอ�
 |---|---|---|
 | `Name` | string | ชื่อไวน์ |
 | `Pic` | string | URL รูป (ว่างได้) |
-| `CategoryName` | string | ประเภท |
+| `CategoryName` | string | ประเภทจากผลค้น — เมื่อไม่พบรายการเป็นค่าที่ส่งไปใน request |
 | `Country` | string | ประเทศ |
 | `Region` | string | ภูมิภาค |
 | `BottleSize` | string | ขนาดขวด (อาจถูกแปลงเป็นชื่อเต็ม เช่น `Bottle (750ml)`) |
@@ -146,7 +148,7 @@ UAT ใช้ path `/uat/cloud/apiv2-Winesearch_Excise` และ token ขอ�
 |---|---|---|
 | `Name` | string | ชื่อไวน์ |
 | `Pic` | string | URL รูป |
-| `CategoryName` | string | ประเภท |
+| `CategoryName` | string | ประเภทจากผลค้น |
 | `Country` | string | ประเทศ |
 | `Region` | string | ภูมิภาค |
 | `BottleSize` | string | ขนาดขวด |
@@ -167,7 +169,7 @@ UAT ใช้ path `/uat/cloud/apiv2-Winesearch_Excise` และ token ขอ�
 | Message | ความหมาย | วิธีใช้ |
 |---|---|---|
 | `พบข้อมูลแนะนำราคาขายเบื้องต้น` | พบราคาตรงรายการ | อ่านราคาจาก `Data` |
-| `พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง` | ไม่ตรงเป๊ะ มีรายการใกล้เคียง | `Data` มักเป็นค่าที่ส่งไป (ราคา 0) — ดู `Suggestions` |
+| `พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง` | ไม่ตรงเป๊ะ มีรายการใกล้เคียง | `Data` เป็นค่าที่ส่งไป (ราคา 0) — อ่านราคาจาก `Suggestions` |
 | `ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น` | ไม่มีราคาแนะนำ | `Data` เป็นค่าที่ส่งไป ราคาเป็น 0 |
 
 ---
@@ -197,66 +199,67 @@ Authorization: Bearer <access_token>
 Content-Type: application/json
 
 {
-  "ReqNo": "REQ-20260820-0001",
-  "Name": "Penfolds Grange",
-  "CategoryName": "Red",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Piclabel": "",
+  "Name": "CHATEAU MOUTON ROTHSCHILD",
+  "CategoryName": "",
+  "Vintage": "1993",
   "BottleSize": "750ml",
-  "Avb": 14.5,
-  "Country": "Australia",
-  "Region": "South Australia"
+  "Avb": 12.5,
+  "Country": "",
+  "Region": ""
 }
 ```
 
-พบราคา
+พบราคา — `CategoryName` / `Country` / `Region` ใน `Data` มาจากฐานข้อมูล ไม่ใช่ค่าที่ส่งไป
 
 ```json
 {
   "Success": true,
   "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้น",
-  "ReqNo": "REQ-20260820-0001",
-  "Query": "Penfolds Grange",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Query": "CHATEAU MOUTON ROTHSCHILD",
+  "Vintage": "1993",
   "Size": "750ml",
   "Data": [
     {
-      "Name": "Penfolds Grange",
-      "Pic": "https://example.com/wine.jpg",
-      "CategoryName": "Red",
-      "Country": "Australia",
-      "Region": "South Australia",
+      "Name": "Chateau Mouton Rothschild",
+      "Pic": "https://storage.example/wine/chateau-mouton-rothschild.jpg",
+      "CategoryName": "Red Wine",
+      "Country": "France",
+      "Region": "Pauillac",
       "BottleSize": "Bottle (750ml)",
-      "Avb": 14.5,
-      "Vintage": "2018",
-      "RecommendPrice": 28500,
-      "RecommendMaxPrice": 32000,
-      "RecommendMinPrice": 25000
+      "Avb": 12.5,
+      "Vintage": "1993",
+      "RecommendPrice": 32500,
+      "RecommendMaxPrice": 36500,
+      "RecommendMinPrice": 28500
     }
   ],
   "Suggestions": []
 }
 ```
 
-ใกล้เคียง
+ใกล้เคียง — `Data` echo ค่าจาก request ราคาเป็น 0 อ่านราคาจาก `Suggestions`
 
 ```json
 {
   "Success": true,
   "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง",
-  "ReqNo": "REQ-20260820-0001",
-  "Query": "Penfolds Grange",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Query": "CHATEAU MOUTON ROTHSCHILD",
+  "Vintage": "1993",
   "Size": "750ml",
   "Data": [
     {
-      "Name": "Penfolds Grange",
+      "Name": "CHATEAU MOUTON ROTHSCHILD",
       "Pic": "",
-      "CategoryName": "Red",
-      "Country": "Australia",
-      "Region": "South Australia",
+      "CategoryName": "",
+      "Country": "",
+      "Region": "",
       "BottleSize": "Bottle (750ml)",
-      "Avb": 14.5,
-      "Vintage": "2018",
+      "Avb": 12.5,
+      "Vintage": "1993",
       "RecommendPrice": 0,
       "RecommendMaxPrice": 0,
       "RecommendMinPrice": 0
@@ -264,19 +267,25 @@ Content-Type: application/json
   ],
   "Suggestions": [
     {
-      "Name": "Penfolds Grange Bin 95",
-      "Pic": "https://example.com/wine.jpg",
-      "CategoryName": "Red",
-      "Country": "Australia",
-      "Region": "South Australia",
+      "Name": "Chateau Mouton Rothschild",
+      "Pic": "https://storage.example/wine/chateau-mouton-rothschild.jpg",
+      "CategoryName": "Red Wine",
+      "Country": "France",
+      "Region": "Pauillac",
       "BottleSize": "Bottle (750ml)",
-      "Avb": 14.5,
+      "Avb": 12.5,
       "Vintages": [
         {
-          "Vintage": "2017",
-          "RecommendPrice": 26000,
-          "RecommendMaxPrice": 29000,
-          "RecommendMinPrice": 23000
+          "Vintage": "1994",
+          "RecommendPrice": 29800,
+          "RecommendMaxPrice": 33500,
+          "RecommendMinPrice": 26200
+        },
+        {
+          "Vintage": "1995",
+          "RecommendPrice": 41200,
+          "RecommendMaxPrice": 45800,
+          "RecommendMinPrice": 36500
         }
       ]
     }
@@ -290,15 +299,15 @@ Content-Type: application/json
 
 ```json
 {
-  "ReqNo": "REQ-20260820-0002",
+  "ReqNo": "",
+  "Piclabel": "/9j/4AAQSkZJRgABAQAAAQABAAD...",
   "Name": "",
-  "CategoryName": "Red",
-  "Vintage": "2019",
+  "CategoryName": "",
+  "Vintage": "1993",
   "BottleSize": "750ml",
-  "Avb": 13.5,
-  "Country": "France",
-  "Region": "Bordeaux",
-  "Piclabel": "/9j/4AAQSkZJRgABAQAAAQABAAD..."
+  "Avb": 12.5,
+  "Country": "",
+  "Region": ""
 }
 ```
 
@@ -335,17 +344,17 @@ You are not authenticate !
 {
   "Success": true,
   "Message": "ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น",
-  "ReqNo": "REQ-20260820-0003",
-  "Query": "Unknown Wine",
+  "ReqNo": "",
+  "Query": "DOMAINE LES HAUTS DU RUISSEAU",
   "Vintage": "2020",
   "Size": "750ml",
   "Data": [
     {
-      "Name": "Unknown Wine",
+      "Name": "DOMAINE LES HAUTS DU RUISSEAU",
       "Pic": "",
-      "CategoryName": "Red",
-      "Country": "France",
-      "Region": "Burgundy",
+      "CategoryName": "",
+      "Country": "",
+      "Region": "",
       "BottleSize": "Bottle (750ml)",
       "Avb": 13,
       "Vintage": "2020",
@@ -367,7 +376,7 @@ You are not authenticate !
 3. เก็บ token เป็นความลับ ห้ามเปิดเผยในเอกสารหรือโค้ดสาธารณะ
 4. ราคาเป็นบาท (THB)
 5. `Avb` ต้องเป็น number เช่น `14.5` ไม่ใช่ `"14.5"`
-6. `CategoryName` ส่งตามที่ฝั่งผู้เรียกจัดกลุ่ม ไม่มี master data และไม่มีรายการค่าที่รับเฉพาะ
+6. `ReqNo` และ `CategoryName` ส่ง `""` ได้ ระบบไม่ใช้เป็นเงื่อนไขค้น ไม่ต้องสร้างเลขที่คำขอ และไม่มี master data ของประเภท
 7. `Piclabel` ละได้ถ้าไม่ค้นจากรูป ถ้าส่งต้องเป็น base64 ของไฟล์รูป (jpeg / png) ไม่ใช่ URL และไม่ใช่ binary
 8. ค้นจากรูปเมื่อ `Name` เป็น `""` (string ว่าง) และมี `Piclabel`
 9. ค้นจากรูปหรือหลายรายการอาจใช้เวลานาน แนะนำ timeout ฝั่งผู้เรียกไม่ต่ำกว่า 10 นาที

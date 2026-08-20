@@ -267,15 +267,17 @@ You are not authenticate !
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `ReqNo` | string | yes | เลขที่คำขอ ของ client ใช้จับคู่ request/response |
+| `ReqNo` | string | yes | passthrough — echo กลับใน envelope และเขียน `tbExciseSearchLog.Reqno` ไม่ใช้ค้น ผู้เรียกส่ง `""` มาตลอด ยังไม่มีแผนใช้เป็น correlation id จริง |
 | `Name` | string | yes | ชื่อไวน์ — ถ้าเป็น `""` (string ว่าง) และมี `Piclabel` จะค้นจากรูปฉลาก |
-| `CategoryName` | string | yes | กลุ่ม/ประเภทตามที่ผู้เรียกจัด — ไม่มี master / accept list ไม่ได้ใช้เป็นเงื่อนไขค้น แค่ log + echo ตอนไม่เจอ |
+| `CategoryName` | string | yes | passthrough — ไม่มี master / accept list ไม่ได้ filter ผลค้น แค่ log + echo ตอนไม่เจอ ผู้เรียกส่ง `""` มาตลอด ยังไม่มีแผนใช้เป็นเงื่อนไขค้น |
 | `Vintage` | string | yes | ปี เช่น `"2018"` หรือ `"NV"` |
 | `BottleSize` | string | yes | ขนาดขวด — ดู mapping ด้านล่าง |
 | `Avb` | number | yes | แอลกอฮอล์ (%) ต้องเป็น number ไม่ใช่ string |
 | `Country` | string | yes | ประเทศ |
 | `Region` | string | yes | ภูมิภาค |
 | `Piclabel` | string | no | รูปฉลากเป็น base64 ของไฟล์รูป (jpeg / png) — ใช้เมื่อ `Name` เป็น `""` (string ว่าง) |
+
+`ReqNo` และ `CategoryName` เป็น **passthrough / reserved ใน schema** — required เพราะ `additionalProperties: false` บังคับครบฟิลด์ ไม่ใช่เพราะใช้ค้น `CategoryName` ใน `Data[]` / `Suggestions[]` เป็นค่าจากผลค้น ไม่ใช่ค่าจาก request
 
 `Piclabel` schema เช็คแค่ว่าเป็น string ไม่ได้ตรวจว่าเป็น base64 ที่ถูกต้อง ส่งได้ raw base64 หรือ data URI (`data:image/jpeg;base64,...` / `data:image/png;base64,...`) ฝั่งค้นรูปตัด prefix ให้ ห้ามส่ง URL หรือ binary
 
@@ -314,7 +316,7 @@ You are not authenticate !
 |---|---|---|
 | `Success` | boolean | ผลค้นหาโดยรวม |
 | `Message` | string | ข้อความสถานะ (ภาษาไทย) |
-| `ReqNo` | string | ค่าเดียวกับ request |
+| `ReqNo` | string | ค่าเดียวกับ request — ผู้เรียกส่ง `""` ได้ |
 | `Query` | string | ชื่อที่ใช้ค้น (`Name`) |
 | `Vintage` | string | ปีจาก request |
 | `Size` | string | `BottleSize` จาก request (ค่าดิบที่ส่งมา) |
@@ -350,6 +352,8 @@ You are not authenticate !
 | `Avb` | number |
 | `Vintages` | `vintageandprice[]` |
 
+`CategoryName` ใน `Data[]` / `Suggestions[]` มาจากผลค้น เมื่อไม่พบรายการ `Data` echo ค่าจาก request (ผู้เรียกมักส่ง `""`)
+
 `Vintages[]`
 
 | Field | Type |
@@ -364,7 +368,7 @@ You are not authenticate !
 | Message | ความหมาย | Data / Suggestions |
 |---|---|---|
 | `พบข้อมูลแนะนำราคาขายเบื้องต้น` | พบราคาตรงรายการ | `Data` มีราคา, `Suggestions` ว่างหรือไม่ใช้ |
-| `พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง` | ไม่ exact — มีรายการใกล้เคียง | `Data` มัก echo ค่าจาก request (ราคา 0), `Suggestions` มีรายการ |
+| `พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง` | ไม่ exact — มีรายการใกล้เคียง | `Data` echo ค่าจาก request (ราคา 0), `Suggestions` มีรายการจากฐานข้อมูล |
 | `ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น` | ไม่มีราคาแนะนำ (รวมกรณีราคา = 0) | `Data` echo ค่าจาก request, ราคาเป็น 0 |
 
 ---
@@ -387,73 +391,76 @@ You are not authenticate !
 
 ### 7.1 ค้นจากชื่อ
 
+request ตามการใช้งานจริง (`ReqNo` / `CategoryName` / `Country` / `Region` / `Piclabel` เป็น `""`) response เป็น mock ให้เห็นครบทั้งพบราคาและใกล้เคียง
+
 ```http
 POST /cloud/apiv2-Winesearch_Excise HTTP/1.1
 Host: api-taitaxes.excise.go.th
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Authorization: Bearer <access_token>
 Content-Type: application/json
 
 {
-  "ReqNo": "SMT-20260820-0001",
-  "Name": "Penfolds Grange",
-  "CategoryName": "Red",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Piclabel": "",
+  "Name": "CHATEAU MOUTON ROTHSCHILD",
+  "CategoryName": "",
+  "Vintage": "1993",
   "BottleSize": "750ml",
-  "Avb": 14.5,
-  "Country": "Australia",
-  "Region": "South Australia"
+  "Avb": 12.5,
+  "Country": "",
+  "Region": ""
 }
 ```
 
-พบราคา
+พบราคา — `Data` จากฐานข้อมูล ไม่ใช่ echo request
 
 ```json
 {
   "Success": true,
   "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้น",
-  "ReqNo": "SMT-20260820-0001",
-  "Query": "Penfolds Grange",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Query": "CHATEAU MOUTON ROTHSCHILD",
+  "Vintage": "1993",
   "Size": "750ml",
   "Data": [
     {
-      "Name": "Penfolds Grange",
-      "Pic": "https://storage.example/wine/penfolds-grange.jpg",
-      "CategoryName": "Red",
-      "Country": "Australia",
-      "Region": "South Australia",
+      "Name": "Chateau Mouton Rothschild",
+      "Pic": "https://storage.example/wine/chateau-mouton-rothschild.jpg",
+      "CategoryName": "Red Wine",
+      "Country": "France",
+      "Region": "Pauillac",
       "BottleSize": "Bottle (750ml)",
-      "Avb": 14.5,
-      "Vintage": "2018",
-      "RecommendPrice": 28500,
-      "RecommendMaxPrice": 32000,
-      "RecommendMinPrice": 25000
+      "Avb": 12.5,
+      "Vintage": "1993",
+      "RecommendPrice": 32500,
+      "RecommendMaxPrice": 36500,
+      "RecommendMinPrice": 28500
     }
   ],
   "Suggestions": []
 }
 ```
 
-ใกล้เคียง
+ใกล้เคียง — `Data` echo request ราคา 0, `Suggestions` จากฐานข้อมูล
 
 ```json
 {
   "Success": true,
   "Message": "พบข้อมูลแนะนำราคาขายเบื้องต้นใกล้เคียง",
-  "ReqNo": "SMT-20260820-0001",
-  "Query": "Penfolds Grange",
-  "Vintage": "2018",
+  "ReqNo": "",
+  "Query": "CHATEAU MOUTON ROTHSCHILD",
+  "Vintage": "1993",
   "Size": "750ml",
   "Data": [
     {
-      "Name": "Penfolds Grange",
+      "Name": "CHATEAU MOUTON ROTHSCHILD",
       "Pic": "",
-      "CategoryName": "Red",
-      "Country": "Australia",
-      "Region": "South Australia",
+      "CategoryName": "",
+      "Country": "",
+      "Region": "",
       "BottleSize": "Bottle (750ml)",
-      "Avb": 14.5,
-      "Vintage": "2018",
+      "Avb": 12.5,
+      "Vintage": "1993",
       "RecommendPrice": 0,
       "RecommendMaxPrice": 0,
       "RecommendMinPrice": 0
@@ -461,19 +468,25 @@ Content-Type: application/json
   ],
   "Suggestions": [
     {
-      "Name": "Penfolds Grange Bin 95",
-      "Pic": "https://storage.example/wine/penfolds-grange-bin95.jpg",
-      "CategoryName": "Red",
-      "Country": "Australia",
-      "Region": "South Australia",
+      "Name": "Chateau Mouton Rothschild",
+      "Pic": "https://storage.example/wine/chateau-mouton-rothschild.jpg",
+      "CategoryName": "Red Wine",
+      "Country": "France",
+      "Region": "Pauillac",
       "BottleSize": "Bottle (750ml)",
-      "Avb": 14.5,
+      "Avb": 12.5,
       "Vintages": [
         {
-          "Vintage": "2017",
-          "RecommendPrice": 26000,
-          "RecommendMaxPrice": 29000,
-          "RecommendMinPrice": 23000
+          "Vintage": "1994",
+          "RecommendPrice": 29800,
+          "RecommendMaxPrice": 33500,
+          "RecommendMinPrice": 26200
+        },
+        {
+          "Vintage": "1995",
+          "RecommendPrice": 41200,
+          "RecommendMaxPrice": 45800,
+          "RecommendMinPrice": 36500
         }
       ]
     }
@@ -487,15 +500,15 @@ Content-Type: application/json
 
 ```json
 {
-  "ReqNo": "SMT-20260820-0002",
+  "ReqNo": "",
+  "Piclabel": "/9j/4AAQSkZJRgABAQAAAQABAAD...",
   "Name": "",
-  "CategoryName": "Red",
-  "Vintage": "2019",
+  "CategoryName": "",
+  "Vintage": "1993",
   "BottleSize": "750ml",
-  "Avb": 13.5,
-  "Country": "France",
-  "Region": "Bordeaux",
-  "Piclabel": "/9j/4AAQSkZJRgABAQAAAQABAAD..."
+  "Avb": 12.5,
+  "Country": "",
+  "Region": ""
 }
 ```
 
@@ -528,17 +541,17 @@ Content-Type: application/json
 {
   "Success": true,
   "Message": "ไม่พบข้อมูลแนะนำราคาขายเบื้องต้น",
-  "ReqNo": "SMT-20260820-0003",
-  "Query": "Unknown Wine",
+  "ReqNo": "",
+  "Query": "DOMAINE LES HAUTS DU RUISSEAU",
   "Vintage": "2020",
   "Size": "750ml",
   "Data": [
     {
-      "Name": "Unknown Wine",
+      "Name": "DOMAINE LES HAUTS DU RUISSEAU",
       "Pic": "",
-      "CategoryName": "Red",
-      "Country": "France",
-      "Region": "Burgundy",
+      "CategoryName": "",
+      "Country": "",
+      "Region": "",
       "BottleSize": "Bottle (750ml)",
       "Avb": 13,
       "Vintage": "2020",
@@ -565,7 +578,8 @@ Content-Type: application/json
 6. **ค้นจากรูป** เกิดเมื่อ `Name === ""` และ `Piclabel` ไม่ว่าง หลัง trim — ตัด prefix `data:image/jpeg;base64,` / `data:image/png;base64,` แล้วส่งเข้าค้นรูป
 7. **Timeout ฝั่ง proxy** สูงสุด 600 วินาที — ค้นจากรูป/หลายรายการอาจช้า
 8. **Log** — ทุก request ที่ผ่าน validate จะถูก insert ลง `tbExciseSearchLog` (`Reqno`, request, response, IP, token uid)
-9. **Body size** — เพดานฝั่งผู้เรียกคือ **10 MB ที่ระบบงานภายในกรมสรรพสามิต** (`client_max_body_size 10m` ระดับ server) แม้ cloud จะรับ 50m และ origin รับ 100mb
+9. **`ReqNo` / `CategoryName` (request)** เป็น passthrough — ไม่ใช้ค้น ผู้เรียกส่ง `""` ยังไม่มีแผนใช้จริง `CategoryName` ในผลค้นมาจากฐานข้อมูล
+10. **Body size** — เพดานฝั่งผู้เรียกคือ **10 MB ที่ระบบงานภายในกรมสรรพสามิต** (`client_max_body_size 10m` ระดับ server) แม้ cloud จะรับ 50m และ origin รับ 100mb
 
 ---
 
